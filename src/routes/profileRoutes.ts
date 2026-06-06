@@ -1,21 +1,12 @@
-import express, { Request, Response } from 'express';
-import {
-  createProfile,
-  getUserProfiles,
-  updateProfile,
-  deleteProfile,
-  getAllProfiles
-} from '../controllers/profileController';
-import authMiddleware from '../middleware/authMiddleware';
+// src/routes/profile.routes.ts
+import { Router } from 'express';
+import { setupProfile, getProfile } from '../controllers/profile.controller';
+import { authMiddleware } from '../middleware/auth.middleware';
 
-const router = express.Router();
+const router = Router();
 
-router.use(authMiddleware);
-
-router.post('/', createProfile);
-router.get('/my-profiles', getUserProfiles);
-router.get('/explore', getAllProfiles);
-router.put('/:id', updateProfile);
-router.delete('/:id', deleteProfile);
+// Protected routes
+router.post('/setup', authMiddleware, setupProfile);
+router.get('/me', authMiddleware, getProfile);
 
 export default router;

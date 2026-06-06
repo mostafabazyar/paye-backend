@@ -5,7 +5,7 @@ import {
   updateRequestStatus,
   getUserReceivedRequests
 } from '../controllers/requestController';
-import authMiddleware from '../middleware/authMiddleware';
+import authMiddleware from '../middleware/auth.middleware';
 
 const router = express.Router();
 
