@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  phone     String   @unique
+  isVerified Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  profiles  Profile[]
+  sentRequests Request[] @relation("SentRequests")
+  receivedRequests Request[] @relation("ReceivedRequests")
+}
+
+model Profile {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  exerciseType    ExerciseType
+  genderPreference GenderPreference
+  title           String
+  location        String
+  maxInvites      Int      @default(1)
+  goDutch         Boolean  @default(false)
+  moreInfo        String?
+  tags            String   // Comma-separated tags
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  user            User     @relation(fields: [userId], references: [id])
+  requests        Request[]
+  
+  @@index([userId])
+}
+
+model Request {
+  id           Int      @id @default(autoincrement())
+  profileId    Int
+  requesterId  Int
+  status       RequestStatus @default(PENDING)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  profile      Profile  @relation(fields: [profileId], references: [id])
+  requester    User     @relation("SentRequests", fields: [requesterId], references: [id])
+  receiver     User     @relation("ReceivedRequests", fields: [profile.userId], references: [id])
+  
+  @@unique([profileId, requesterId])
+  @@index([profileId])
+  @@index([requesterId])
+  @@index([status])
+}
+
+enum ExerciseType {
+  ONE_ON_ONE
+  MANY_ON_MANY
+  ONE_ON_MANY
+}
+
+enum GenderPreference {
+  MEN_ONLY
+  WOMEN_ONLY
+  ANY
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
