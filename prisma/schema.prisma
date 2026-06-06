@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
+  // url      = env("DATABASE_URL")
 }
 
 model User {
@@ -44,17 +44,19 @@ model Request {
   id           Int      @id @default(autoincrement())
   profileId    Int
   requesterId  Int
+  receiverId   Int
   status       RequestStatus @default(PENDING)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   
   profile      Profile  @relation(fields: [profileId], references: [id])
   requester    User     @relation("SentRequests", fields: [requesterId], references: [id])
-  receiver     User     @relation("ReceivedRequests", fields: [profile.userId], references: [id])
+  receiver     User     @relation("ReceivedRequests", fields: [receiverId], references: [id])
   
   @@unique([profileId, requesterId])
   @@index([profileId])
   @@index([requesterId])
+  @@index([receiverId])
   @@index([status])
 }
 
