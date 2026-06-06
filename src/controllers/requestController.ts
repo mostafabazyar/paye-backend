@@ -1,39 +1,54 @@
-const { PrismaClient } = require('@prisma/client');
+import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const sendRequest = async (req, res) => {
+interface RequestControllerRequest extends Request {
+  userId?: string;
+  body: {
+    profileId: number;
+    status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+  };
+  params: {
+    id?: string;
+    profileId?: string;
+  };
+}
+
+const sendRequest = async (req: RequestControllerRequest, res: Response): Promise<void> => {
   try {
     const requesterId = req.userId;
     const { profileId } = req.body;
-    
+
     // Check if request already exists
     const existingRequest = await prisma.request.findUnique({
       where: {
         profileId_requesterId: {
-          profileId: parseInt(profileId),
-          requesterId
+          profileId: parseInt(profileId.toString()),
+          requesterId: requesterId || ''
         }
       }
     });
-    
+
     if (existingRequest) {
-      return res.status(400).json({ error: 'Request already sent' });
+      res.status(400).json({ error: 'Request already sent' });
+      return;
     }
-    
+
     // Get profile to get receiverId
     const profile = await prisma.profile.findUnique({
-      where: { id: parseInt(profileId) }
+      where: { id: parseInt(profileId.toString()) }
     });
-    
+
     if (!profile) {
-      return res.status(404).json({ error: 'Profile not found' });
+      res.status(404).json({ error: 'Profile not found' });
+      return;
     }
-    
+
     const request = await prisma.request.create({
       data: {
-        profileId: parseInt(profileId),
-        requesterId,
+        profileId: parseInt(profileId.toString()),
+        requesterId: requesterId || '',
         receiverId: profile.userId,
         status: 'PENDING'
       },
@@ -46,7 +61,7 @@ const sendRequest = async (req, res) => {
         }
       }
     });
-    
+
     res.status(201).json({ success: true, request });
   } catch (error) {
     console.error('Send request error:', error);
@@ -54,16 +69,16 @@ const sendRequest = async (req, res) => {
   }
 };
 
-const getProfileRequests = async (req, res) => {
+const getProfileRequests = async (req: RequestControllerRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     const { profileId } = req.params;
-    
+
     const requests = await prisma.request.findMany({
       where: {
-        profileId: parseInt(profileId),
+        profileId: parseInt(profileId || '0'),
         profile: {
-          userId
+          userId: userId || ''
         }
       },
       include: {
@@ -77,7 +92,7 @@ const getProfileRequests = async (req, res) => {
       },
       orderBy: { createdAt: 'desc' }
     });
-    
+
     res.json({ success: true, requests });
   } catch (error) {
     console.error('Get requests error:', error);
@@ -85,28 +100,29 @@ const getProfileRequests = async (req, res) => {
   }
 };
 
-const updateRequestStatus = async (req, res) => {
+const updateRequestStatus = async (req: RequestControllerRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     const { id } = req.params;
     const { status } = req.body;
-    
+
     // Check ownership through profile
     const request = await prisma.request.findFirst({
       where: {
-        id: parseInt(id),
+        id: parseInt(id || '0'),
         profile: {
-          userId
+          userId: userId || ''
         }
       }
     });
-    
+
     if (!request) {
-      return res.status(404).json({ error: 'Request not found' });
+      res.status(404).json({ error: 'Request not found' });
+      return;
     }
-    
+
     const updatedRequest = await prisma.request.update({
-      where: { id: parseInt(id) },
+      where: { id: parseInt(id || '0') },
       data: { status },
       include: {
         requester: {
@@ -117,7 +133,7 @@ const updateRequestStatus = async (req, res) => {
         }
       }
     });
-    
+
     res.json({ success: true, request: updatedRequest });
   } catch (error) {
     console.error('Update request error:', error);
@@ -125,13 +141,13 @@ const updateRequestStatus = async (req, res) => {
   }
 };
 
-const getUserReceivedRequests = async (req, res) => {
+const getUserReceivedRequests = async (req: RequestControllerRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
-    
+
     const requests = await prisma.request.findMany({
       where: {
-        receiverId: userId,
+        receiverId: userId || '',
         status: 'PENDING'
       },
       include: {
@@ -145,7 +161,7 @@ const getUserReceivedRequests = async (req, res) => {
       },
       orderBy: { createdAt: 'desc' }
     });
-    
+
     res.json({ success: true, requests });
   } catch (error) {
     console.error('Get received requests error:', error);
@@ -153,7 +169,7 @@ const getUserReceivedRequests = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   sendRequest,
   getProfileRequests,
   updateRequestStatus,

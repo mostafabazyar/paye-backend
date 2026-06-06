@@ -1,8 +1,31 @@
-const { PrismaClient } = require('@prisma/client');
+import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const createProfile = async (req, res) => {
+interface ProfileRequest extends Request {
+  userId?: string;
+  body: {
+    exerciseType: 'ONE_ON_ONE' | 'MANY_ON_MANY' | 'ONE_ON_MANY';
+    genderPreference: 'MEN_ONLY' | 'WOMEN_ONLY' | 'ANY';
+    title: string;
+    location: string;
+    maxInvites?: number;
+    goDutch?: boolean;
+    moreInfo?: string;
+    tags: string[];
+  };
+  params: {
+    id?: string;
+  };
+  query: {
+    search?: string;
+    exerciseType?: string;
+    genderPreference?: string;
+  };
+}
+
+const createProfile = async (req: ProfileRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     const {
@@ -15,10 +38,10 @@ const createProfile = async (req, res) => {
       moreInfo,
       tags
     } = req.body;
-    
+
     const profile = await prisma.profile.create({
       data: {
-        userId,
+        userId: userId || '',
         exerciseType,
         genderPreference,
         title,
@@ -30,7 +53,7 @@ const createProfile = async (req, res) => {
         isActive: true
       }
     });
-    
+
     res.status(201).json({ success: true, profile });
   } catch (error) {
     console.error('Create profile error:', error);
@@ -38,12 +61,12 @@ const createProfile = async (req, res) => {
   }
 };
 
-const getUserProfiles = async (req, res) => {
+const getUserProfiles = async (req: ProfileRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
-    
+
     const profiles = await prisma.profile.findMany({
-      where: { userId },
+      where: { userId: userId || '' },
       include: {
         requests: {
           include: {
@@ -58,7 +81,7 @@ const getUserProfiles = async (req, res) => {
       },
       orderBy: { createdAt: 'desc' }
     });
-    
+
     res.json({ success: true, profiles });
   } catch (error) {
     console.error('Get profiles error:', error);
@@ -66,30 +89,39 @@ const getUserProfiles = async (req, res) => {
   }
 };
 
-const updateProfile = async (req, res) => {
+const updateProfile = async (req: ProfileRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     const { id } = req.params;
     const updates = req.body;
-    
+
     // Check ownership
     const existingProfile = await prisma.profile.findFirst({
-      where: { id: parseInt(id), userId }
+      where: { id: parseInt(id || '0'), userId: userId || '' }
     });
-    
+
     if (!existingProfile) {
-      return res.status(404).json({ error: 'Profile not found' });
+      res.status(404).json({ error: 'Profile not found' });
+      return;
     }
-    
-    if (updates.tags && Array.isArray(updates.tags)) {
-      updates.tags = updates.tags.join(',');
-    }
-    
+
+    // Type the updates properly
+    const updateData = {
+      exerciseType: updates.exerciseType,
+      genderPreference: updates.genderPreference,
+      title: updates.title,
+      location: updates.location,
+      maxInvites: updates.maxInvites,
+      goDutch: updates.goDutch,
+      moreInfo: updates.moreInfo,
+      tags: updates.tags.join(',')
+    };
+
     const profile = await prisma.profile.update({
-      where: { id: parseInt(id) },
-      data: updates
+      where: { id: parseInt(id || '0') },
+      data: updateData
     });
-    
+
     res.json({ success: true, profile });
   } catch (error) {
     console.error('Update profile error:', error);
@@ -97,24 +129,25 @@ const updateProfile = async (req, res) => {
   }
 };
 
-const deleteProfile = async (req, res) => {
+const deleteProfile = async (req: ProfileRequest, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     const { id } = req.params;
-    
+
     // Check ownership
     const existingProfile = await prisma.profile.findFirst({
-      where: { id: parseInt(id), userId }
+      where: { id: parseInt(id || '0'), userId: userId || '' }
     });
-    
+
     if (!existingProfile) {
-      return res.status(404).json({ error: 'Profile not found' });
+      res.status(404).json({ error: 'Profile not found' });
+      return;
     }
-    
+
     await prisma.profile.delete({
-      where: { id: parseInt(id) }
+      where: { id: parseInt(id || '0') }
     });
-    
+
     res.json({ success: true, message: 'Profile deleted successfully' });
   } catch (error) {
     console.error('Delete profile error:', error);
@@ -122,12 +155,12 @@ const deleteProfile = async (req, res) => {
   }
 };
 
-const getAllProfiles = async (req, res) => {
+const getAllProfiles = async (req: ProfileRequest, res: Response): Promise<void> => {
   try {
     const { search, exerciseType, genderPreference } = req.query;
-    
-    let where = { isActive: true };
-    
+
+    const where: any = { isActive: true };
+
     if (search) {
       where.OR = [
         { title: { contains: search } },
@@ -135,42 +168,42 @@ const getAllProfiles = async (req, res) => {
         { location: { contains: search } }
       ];
     }
-    
+
     if (exerciseType) {
-      where.exerciseType = exerciseType;
+      where.exerciseType = exerciseType as 'ONE_ON_ONE' | 'MANY_ON_MANY' | 'ONE_ON_MANY';
     }
-    
+
     if (genderPreference) {
-      where.genderPreference = genderPreference;
+      where.genderPreference = genderPreference as 'MEN_ONLY' | 'WOMEN_ONLY' | 'ANY';
     }
-    
+
     const profiles = await prisma.profile.findMany({
       where,
       include: {
         user: {
           select: {
             id: true,
-            phone: true
+            phone: true,
+            name: true,
+            photos: true,
+            avgRating: true
           }
         },
         requests: {
-          where: { status: 'PENDING' }
+          select: {
+            id: true,
+            status: true
+          }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      take: 20
     });
-    
-    res.json({ success: true, profiles });
+
+    res.json({ success: true, profiles, total: profiles.length });
   } catch (error) {
     console.error('Get all profiles error:', error);
     res.status(500).json({ error: 'Failed to get profiles' });
   }
 };
 
-module.exports = {
-  createProfile,
-  getUserProfiles,
-  updateProfile,
-  deleteProfile,
-  getAllProfiles
-};
+export { createProfile, getUserProfiles, updateProfile, deleteProfile, getAllProfiles };

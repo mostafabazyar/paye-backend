@@ -1,12 +1,12 @@
-const express = require('express');
-const {
+import express, { Request, Response } from 'express';
+import {
   createProfile,
   getUserProfiles,
   updateProfile,
   deleteProfile,
   getAllProfiles
-} = require('../controllers/profileController');
-const authMiddleware = require('../middleware/authMiddleware');
+} from '../controllers/profileController';
+import authMiddleware from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -18,4 +18,4 @@ router.get('/explore', getAllProfiles);
 router.put('/:id', updateProfile);
 router.delete('/:id', deleteProfile);
 
-module.exports = router;
+export default router;

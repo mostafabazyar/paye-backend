@@ -1,11 +1,11 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
   sendRequest,
   getProfileRequests,
   updateRequestStatus,
   getUserReceivedRequests
-} = require('../controllers/requestController');
-const authMiddleware = require('../middleware/authMiddleware');
+} from '../controllers/requestController';
+import authMiddleware from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -16,4 +16,4 @@ router.get('/received', getUserReceivedRequests);
 router.get('/profile/:profileId', getProfileRequests);
 router.put('/:id', updateRequestStatus);
 
-module.exports = router;
+export default router;

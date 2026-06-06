@@ -1,29 +1,38 @@
-const { PrismaClient } = require('@prisma/client');
-const jwt = require('jsonwebtoken');
-const OTPService = require('../services/otpService');
+import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+import jwt from 'jsonwebtoken';
+import OTPService from '../services/otpService';
 
 const prisma = new PrismaClient();
 
-const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+interface AuthRequest extends Request {
+  body: {
+    phone: string;
+    otp?: string;
+  };
+}
+
+const generateToken = (userId: string): string => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn: '7d' });
 };
 
-const requestOTP = async (req, res) => {
+const requestOTP = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { phone } = req.body;
-    
+
     if (!phone) {
-      return res.status(400).json({ error: 'Phone number is required' });
+      res.status(400).json({ error: 'Phone number is required' });
+      return;
     }
-    
+
     // Check if user exists
     let user = await prisma.user.findUnique({ where: { phone } });
-    
+
     // Request OTP
     const result = await OTPService.requestOTP(phone);
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       message: result.message,
       isNewUser: !user
     });
@@ -33,24 +42,37 @@ const requestOTP = async (req, res) => {
   }
 };
 
-const verifyOTP = async (req, res) => {
+interface VerifyOTPResponse {
+  success: boolean;
+  token?: string;
+  user?: {
+    id: string;
+    phone: string;
+    isVerified: boolean;
+  };
+  error?: string;
+}
+
+const verifyOTP = async (req: AuthRequest, res: Response<VerifyOTPResponse>): Promise<void> => {
   try {
     const { phone, otp } = req.body;
-    
+
     if (!phone || !otp) {
-      return res.status(400).json({ error: 'Phone and OTP are required' });
+      res.status(400).json({ success: false, error: 'Phone and OTP are required' });
+      return;
     }
-    
+
     // Verify OTP
     const verification = await OTPService.verifyOTP(phone, otp);
-    
+
     if (!verification.success) {
-      return res.status(400).json({ error: verification.message });
+      res.status(400).json({ success: false, error: verification.message });
+      return;
     }
-    
+
     // Find or create user
     let user = await prisma.user.findUnique({ where: { phone } });
-    
+
     if (!user) {
       user = await prisma.user.create({
         data: {
@@ -64,10 +86,10 @@ const verifyOTP = async (req, res) => {
         data: { isVerified: true }
       });
     }
-    
+
     // Generate token
     const token = generateToken(user.id);
-    
+
     res.json({
       success: true,
       token,
@@ -79,8 +101,8 @@ const verifyOTP = async (req, res) => {
     });
   } catch (error) {
     console.error('OTP verification error:', error);
-    res.status(500).json({ error: 'Failed to verify OTP' });
+    res.status(500).json({ success: false, error: 'Failed to verify OTP' });
   }
 };
 
-module.exports = { requestOTP, verifyOTP };
+export { requestOTP, verifyOTP };
