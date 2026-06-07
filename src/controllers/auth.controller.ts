@@ -78,10 +78,23 @@ export const verify = async (req: Request, res: Response) => {
       { expiresIn: '7d' }
     );
 
+    // Format user response
+    const userResponse = {
+      id: user.id,
+      phone: user.phone,
+      name: user.name || null,
+      age: user.age || null,
+      gender: user.gender || null,
+      bio: user.bio || null,
+      photos: user.photos ? JSON.parse(user.photos) : [],
+      avgRating: user.avgRating,
+      isVerified: user.isVerified,
+    };
+
     res.json({
       success: true,
       message: "Login successful",
-      user,
+      user: userResponse,
       token,
       isNewUser
     });

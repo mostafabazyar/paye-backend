@@ -5,7 +5,8 @@ import dotenv from 'dotenv';
 
 import authRoutes from './routes/auth.routes';
 import profileRoutes from './routes/profileRoutes';
-// import other routes later
+import userRoutes from './routes/userRoutes';
+import requestRoutes from './routes/requestRoutes';
 
 dotenv.config();
 
@@ -19,8 +20,11 @@ app.use(cors({
 
 app.use(express.json());
 
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/requests', requestRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Paye Backend Running' });

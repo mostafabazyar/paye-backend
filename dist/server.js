@@ -7,27 +7,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
+const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const profileRoutes_1 = __importDefault(require("./routes/profileRoutes"));
+const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const requestRoutes_1 = __importDefault(require("./routes/requestRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5000;
-// Middleware
 app.use((0, cors_1.default)({
     origin: 'http://localhost:3000',
     credentials: true
 }));
 app.use(express_1.default.json());
-app.use(express_1.default.urlencoded({ extended: true }));
 // Routes
-app.use('/api/auth', authRoutes_1.default);
+app.use('/api/auth', auth_routes_1.default);
 app.use('/api/profile', profileRoutes_1.default);
+app.use('/api/users', userRoutes_1.default);
 app.use('/api/requests', requestRoutes_1.default);
-// Health Check
 app.get('/health', (req, res) => {
-    res.json({ status: 'OK', message: 'Paye Backend is running 🚀' });
+    res.json({ status: 'OK', message: 'Paye Backend Running' });
 });
 app.listen(PORT, () => {
-    console.log(`✅ Server running on http://localhost:${PORT}`);
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

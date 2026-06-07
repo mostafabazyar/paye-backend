@@ -5,14 +5,18 @@ const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const sendRequest = async (req, res) => {
     try {
-        const requesterId = req.userId;
+        const requesterId = req.user?.id || req.userId;
         const { profileId } = req.body;
+        if (!requesterId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
         // Check if request already exists
         const existingRequest = await prisma.request.findUnique({
             where: {
                 profileId_requesterId: {
                     profileId: parseInt(profileId.toString()),
-                    requesterId: requesterId || ''
+                    requesterId: requesterId
                 }
             }
         });
@@ -31,7 +35,7 @@ const sendRequest = async (req, res) => {
         const request = await prisma.request.create({
             data: {
                 profileId: parseInt(profileId.toString()),
-                requesterId: requesterId || '',
+                requesterId: requesterId,
                 receiverId: profile.userId,
                 status: 'PENDING'
             },
@@ -54,13 +58,17 @@ const sendRequest = async (req, res) => {
 exports.sendRequest = sendRequest;
 const getProfileRequests = async (req, res) => {
     try {
-        const userId = req.userId;
+        const userId = req.user?.id || req.userId;
         const { profileId } = req.params;
+        if (!userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
         const requests = await prisma.request.findMany({
             where: {
                 profileId: parseInt(profileId || '0'),
                 profile: {
-                    userId: userId || ''
+                    userId: userId
                 }
             },
             include: {
@@ -84,15 +92,19 @@ const getProfileRequests = async (req, res) => {
 exports.getProfileRequests = getProfileRequests;
 const updateRequestStatus = async (req, res) => {
     try {
-        const userId = req.userId;
+        const userId = req.user?.id || req.userId;
         const { id } = req.params;
         const { status } = req.body;
+        if (!userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
         // Check ownership through profile
         const request = await prisma.request.findFirst({
             where: {
                 id: parseInt(id || '0'),
                 profile: {
-                    userId: userId || ''
+                    userId: userId
                 }
             }
         });
@@ -122,10 +134,14 @@ const updateRequestStatus = async (req, res) => {
 exports.updateRequestStatus = updateRequestStatus;
 const getUserReceivedRequests = async (req, res) => {
     try {
-        const userId = req.userId;
+        const userId = req.user?.id || req.userId;
+        if (!userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
         const requests = await prisma.request.findMany({
             where: {
-                receiverId: userId || '',
+                receiverId: userId,
                 status: 'PENDING'
             },
             include: {

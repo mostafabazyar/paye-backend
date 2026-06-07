@@ -5,9 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const requestController_1 = require("../controllers/requestController");
-const authMiddleware_1 = __importDefault(require("../middleware/authMiddleware"));
+const auth_middleware_1 = __importDefault(require("../middleware/auth.middleware"));
 const router = express_1.default.Router();
-router.use(authMiddleware_1.default);
+router.use(auth_middleware_1.default);
 router.post('/', requestController_1.sendRequest);
 router.get('/received', requestController_1.getUserReceivedRequests);
 router.get('/profile/:profileId', requestController_1.getProfileRequests);
