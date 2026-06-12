@@ -6,6 +6,18 @@ import jwt from 'jsonwebtoken';
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
 
+const parseDateOrNull = (value?: unknown) => {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(String(value));
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const isPastDate = (value?: Date | string | null) => {
+  if (!value) return false;
+  const date = value instanceof Date ? value : new Date(value);
+  return !Number.isNaN(date.getTime()) && date.getTime() <= Date.now();
+};
+
 // Helper to format user response
 const formatUserResponse = (user: any) => {
   return {
@@ -14,6 +26,9 @@ const formatUserResponse = (user: any) => {
     name: user.name || null,
     age: user.age || null,
     gender: user.gender || null,
+    interestedIn: user.interestedIn || 'EVERYONE',
+    preferredSports: user.preferredSports ? user.preferredSports.split(',').filter(Boolean) : [],
+    preferredSessionTypes: user.preferredSessionTypes ? user.preferredSessionTypes.split(',').filter(Boolean) : [],
     bio: user.bio || null,
     photos: user.photos ? JSON.parse(user.photos) : [],
     avgRating: user.avgRating,
@@ -23,7 +38,7 @@ const formatUserResponse = (user: any) => {
 
 export const setupProfile = async (req: Request, res: Response) => {
   try {
-    const { name, age, gender, bio } = req.body;
+    const { name, age, gender, interestedIn, preferredSports, preferredSessionTypes, bio } = req.body;
     const userId = (req as any).user?.id || (req as any).userId;
 
     if (!userId) {
@@ -36,6 +51,9 @@ export const setupProfile = async (req: Request, res: Response) => {
         name,
         age: typeof age === 'string' ? parseInt(age) : age,
         gender,
+        interestedIn,
+        preferredSports: Array.isArray(preferredSports) ? preferredSports.join(',') : null,
+        preferredSessionTypes: Array.isArray(preferredSessionTypes) ? preferredSessionTypes.join(',') : null,
         bio,
         isVerified: true,
       },
@@ -93,18 +111,26 @@ export const createProfileListing = async (req: Request, res: Response) => {
       genderPreference,
       title,
       location,
+      scheduledAt,
       maxInvites = 1,
       goDutch = false,
       moreInfo,
       tags,
     } = req.body;
+    const parsedScheduledAt = parseDateOrNull(scheduledAt);
 
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
+    if (scheduledAt && !parsedScheduledAt) {
+      return res.status(400).json({ success: false, message: 'Invalid schedule time' });
+    }
+
     // Map sports array to tags string if provided
-    const tagsString = Array.isArray(sports) ? sports.join(',') : tags || '';
+    const tagsString = Array.isArray(sports)
+      ? sports.map((sport: string) => sport.trim().toLowerCase()).join(',')
+      : String(tags || '').toLowerCase();
 
     const profile = await prisma.profile.create({
       data: {
@@ -113,11 +139,12 @@ export const createProfileListing = async (req: Request, res: Response) => {
         genderPreference: genderPreference || 'ANY',
         title,
         location,
+        scheduledAt: parsedScheduledAt,
         maxInvites: Number(maxInvites) || 1,
         goDutch: !!goDutch,
         moreInfo: moreInfo || null,
         tags: tagsString,
-        isActive: true,
+        isActive: !isPastDate(parsedScheduledAt),
       },
     });
 
@@ -131,12 +158,24 @@ export const createProfileListing = async (req: Request, res: Response) => {
 // Explore profile listings, optional filter by sport via query param
 export const exploreListings = async (req: Request, res: Response) => {
   try {
-    const { sport, skip = '0', take = '20', exerciseType, genderPreference, location } = req.query as any;
+    const { sport, skip = '0', take = '20', exerciseType, genderPreference, location, sortBy = 'newest' } = req.query as any;
+
+    await prisma.profile.updateMany({
+      where: {
+        isActive: true,
+        scheduledAt: {
+          lte: new Date(),
+        },
+      },
+      data: {
+        isActive: false,
+      },
+    });
 
     const where: any = { isActive: true };
 
     if (sport) {
-      where.tags = { contains: sport, mode: 'insensitive' };
+      where.tags = { contains: String(sport).toLowerCase() };
     }
 
     if (exerciseType) {
@@ -148,8 +187,15 @@ export const exploreListings = async (req: Request, res: Response) => {
     }
 
     if (location) {
-      where.location = { contains: location, mode: 'insensitive' };
+      where.location = { contains: String(location).toLowerCase() };
     }
+
+    const orderBy =
+      sortBy === 'soonest'
+        ? [{ scheduledAt: 'asc' as const }, { createdAt: 'desc' as const }]
+        : sortBy === 'oldest'
+          ? { createdAt: 'asc' as const }
+          : { createdAt: 'desc' as const };
 
     const profiles = await prisma.profile.findMany({
       where,
@@ -166,7 +212,7 @@ export const exploreListings = async (req: Request, res: Response) => {
       },
       skip: parseInt(skip),
       take: parseInt(take),
-      orderBy: { createdAt: 'desc' },
+      orderBy,
     });
 
     const formatted = profiles.map((p) => ({
@@ -179,6 +225,7 @@ export const exploreListings = async (req: Request, res: Response) => {
       maxInvites: p.maxInvites,
       goDutch: p.goDutch,
       moreInfo: p.moreInfo,
+      scheduledAt: p.scheduledAt,
       createdAt: p.createdAt,
       user: formatUserResponse(p.user),
     }));

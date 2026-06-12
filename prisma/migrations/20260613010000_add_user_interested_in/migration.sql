@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `User`
+ADD COLUMN `interestedIn` ENUM('MEN', 'WOMEN', 'EVERYONE') NOT NULL DEFAULT 'EVERYONE' AFTER `gender`;

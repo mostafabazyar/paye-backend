@@ -3,11 +3,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getProfile = exports.exploreProfiles = exports.createListing = exports.setupProfile = void 0;
+exports.exploreListings = exports.createProfileListing = exports.getProfile = exports.setupProfile = void 0;
 const client_1 = require("@prisma/client");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma = new client_1.PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
+const parseDateOrNull = (value) => {
+    if (!value)
+        return null;
+    const date = value instanceof Date ? value : new Date(String(value));
+    return Number.isNaN(date.getTime()) ? null : date;
+};
+const isPastDate = (value) => {
+    if (!value)
+        return false;
+    const date = value instanceof Date ? value : new Date(value);
+    return !Number.isNaN(date.getTime()) && date.getTime() <= Date.now();
+};
 // Helper to format user response
 const formatUserResponse = (user) => {
     return {
@@ -16,6 +28,9 @@ const formatUserResponse = (user) => {
         name: user.name || null,
         age: user.age || null,
         gender: user.gender || null,
+        interestedIn: user.interestedIn || 'EVERYONE',
+        preferredSports: user.preferredSports ? user.preferredSports.split(',').filter(Boolean) : [],
+        preferredSessionTypes: user.preferredSessionTypes ? user.preferredSessionTypes.split(',').filter(Boolean) : [],
         bio: user.bio || null,
         photos: user.photos ? JSON.parse(user.photos) : [],
         avgRating: user.avgRating,
@@ -24,7 +39,7 @@ const formatUserResponse = (user) => {
 };
 const setupProfile = async (req, res) => {
     try {
-        const { name, age, gender, bio } = req.body;
+        const { name, age, gender, interestedIn, preferredSports, preferredSessionTypes, bio } = req.body;
         const userId = req.user?.id || req.userId;
         if (!userId) {
             return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -33,8 +48,11 @@ const setupProfile = async (req, res) => {
             where: { id: userId },
             data: {
                 name,
-                age: parseInt(age),
+                age: typeof age === 'string' ? parseInt(age) : age,
                 gender,
+                interestedIn,
+                preferredSports: Array.isArray(preferredSports) ? preferredSports.join(',') : null,
+                preferredSessionTypes: Array.isArray(preferredSessionTypes) ? preferredSessionTypes.join(',') : null,
                 bio,
                 isVerified: true,
             },
@@ -44,61 +62,92 @@ const setupProfile = async (req, res) => {
         const token = jsonwebtoken_1.default.sign({ id: updatedUser.id, phone: updatedUser.phone }, JWT_SECRET, { expiresIn: '7d' });
         res.json({
             success: true,
-            message: "Profile setup completed successfully",
+            message: 'Profile setup completed successfully',
             user: formatUserResponse(updatedUser),
-            token
+            token,
         });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to update profile'
-        });
+        console.error('Setup profile error:', error);
+        res.status(500).json({ success: false, message: 'Failed to update profile' });
     }
 };
 exports.setupProfile = setupProfile;
-const createListing = async (req, res) => {
+const getProfile = async (req, res) => {
     try {
         const userId = req.user?.id || req.userId;
-        const { sports, exerciseType = 'ONE_ON_ONE', genderPreference = 'ANY', title, location, maxInvites = 1, goDutch = false, moreInfo, tags } = req.body;
         if (!userId) {
             return res.status(401).json({ success: false, message: 'Unauthorized' });
         }
-        if (!title || !location || !sports) {
-            return res.status(400).json({ success: false, message: 'Title, location, and sports are required' });
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
         }
-        const sportTags = Array.isArray(sports) ? sports.join(',') : sports;
-        const extraTags = tags ? (Array.isArray(tags) ? tags.join(',') : tags) : '';
-        const allTags = extraTags ? `${sportTags},${extraTags}` : sportTags;
+        res.json({ success: true, user: formatUserResponse(user) });
+    }
+    catch (error) {
+        console.error('Get profile error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch profile' });
+    }
+};
+exports.getProfile = getProfile;
+// Create a new profile/listing for the current user
+const createProfileListing = async (req, res) => {
+    try {
+        const userId = req.user?.id || req.userId;
+        const { sports, exerciseType, genderPreference, title, location, scheduledAt, maxInvites = 1, goDutch = false, moreInfo, tags, } = req.body;
+        const parsedScheduledAt = parseDateOrNull(scheduledAt);
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+        if (scheduledAt && !parsedScheduledAt) {
+            return res.status(400).json({ success: false, message: 'Invalid schedule time' });
+        }
+        // Map sports array to tags string if provided
+        const tagsString = Array.isArray(sports)
+            ? sports.map((sport) => sport.trim().toLowerCase()).join(',')
+            : String(tags || '').toLowerCase();
         const profile = await prisma.profile.create({
             data: {
                 userId,
-                exerciseType,
-                genderPreference,
+                exerciseType: exerciseType || 'ONE_ON_ONE',
+                genderPreference: genderPreference || 'ANY',
                 title,
                 location,
-                maxInvites,
-                goDutch,
-                moreInfo,
-                tags: allTags,
-                isActive: true
-            }
+                scheduledAt: parsedScheduledAt,
+                maxInvites: Number(maxInvites) || 1,
+                goDutch: !!goDutch,
+                moreInfo: moreInfo || null,
+                tags: tagsString,
+                isActive: !isPastDate(parsedScheduledAt),
+            },
         });
         res.status(201).json({ success: true, profile });
     }
     catch (error) {
-        console.error('Create listing error:', error);
-        res.status(500).json({ success: false, message: 'Failed to create listing' });
+        console.error('Create profile listing error:', error);
+        res.status(500).json({ success: false, message: 'Failed to create profile listing' });
     }
 };
-exports.createListing = createListing;
-const exploreProfiles = async (req, res) => {
+exports.createProfileListing = createProfileListing;
+// Explore profile listings, optional filter by sport via query param
+const exploreListings = async (req, res) => {
     try {
-        const { sport, exerciseType, genderPreference, location } = req.query;
+        const { sport, skip = '0', take = '20', exerciseType, genderPreference, location, sortBy = 'newest' } = req.query;
+        await prisma.profile.updateMany({
+            where: {
+                isActive: true,
+                scheduledAt: {
+                    lte: new Date(),
+                },
+            },
+            data: {
+                isActive: false,
+            },
+        });
         const where = { isActive: true };
         if (sport) {
-            where.tags = { contains: sport, mode: 'insensitive' };
+            where.tags = { contains: String(sport).toLowerCase() };
         }
         if (exerciseType) {
             where.exerciseType = exerciseType;
@@ -107,8 +156,13 @@ const exploreProfiles = async (req, res) => {
             where.genderPreference = genderPreference;
         }
         if (location) {
-            where.location = { contains: location, mode: 'insensitive' };
+            where.location = { contains: String(location).toLowerCase() };
         }
+        const orderBy = sortBy === 'soonest'
+            ? [{ scheduledAt: 'asc' }, { createdAt: 'desc' }]
+            : sortBy === 'oldest'
+                ? { createdAt: 'asc' }
+                : { createdAt: 'desc' };
         const profiles = await prisma.profile.findMany({
             where,
             include: {
@@ -118,39 +172,33 @@ const exploreProfiles = async (req, res) => {
                         phone: true,
                         name: true,
                         photos: true,
-                        avgRating: true
-                    }
-                }
+                        avgRating: true,
+                    },
+                },
             },
-            orderBy: { createdAt: 'desc' }
+            skip: parseInt(skip),
+            take: parseInt(take),
+            orderBy,
         });
-        res.json({ success: true, profiles });
+        const formatted = profiles.map((p) => ({
+            id: p.id,
+            title: p.title,
+            location: p.location,
+            exerciseType: p.exerciseType,
+            genderPreference: p.genderPreference,
+            tags: p.tags ? p.tags.split(',') : [],
+            maxInvites: p.maxInvites,
+            goDutch: p.goDutch,
+            moreInfo: p.moreInfo,
+            scheduledAt: p.scheduledAt,
+            createdAt: p.createdAt,
+            user: formatUserResponse(p.user),
+        }));
+        res.json({ success: true, profiles: formatted });
     }
     catch (error) {
         console.error('Explore listings error:', error);
-        res.status(500).json({ success: false, message: 'Failed to load explorer listings' });
+        res.status(500).json({ success: false, message: 'Failed to explore listings' });
     }
 };
-exports.exploreProfiles = exploreProfiles;
-const getProfile = async (req, res) => {
-    try {
-        const userId = req.user?.id || req.userId;
-        if (!userId) {
-            return res.status(401).json({ success: false, message: 'Unauthorized' });
-        }
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-        });
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'User not found' });
-        }
-        res.json({
-            success: true,
-            user: formatUserResponse(user)
-        });
-    }
-    catch (error) {
-        res.status(500).json({ success: false, message: 'Failed to fetch profile' });
-    }
-};
-exports.getProfile = getProfile;
+exports.exploreListings = exploreListings;

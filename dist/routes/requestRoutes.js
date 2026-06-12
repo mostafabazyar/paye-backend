@@ -10,6 +10,8 @@ const router = express_1.default.Router();
 router.use(auth_middleware_1.default);
 router.post('/', requestController_1.sendRequest);
 router.get('/received', requestController_1.getUserReceivedRequests);
+router.get('/sent', requestController_1.getUserSentRequests);
+router.get('/:id', requestController_1.getRequestById);
 router.get('/profile/:profileId', requestController_1.getProfileRequests);
 router.put('/:id', requestController_1.updateRequestStatus);
 exports.default = router;

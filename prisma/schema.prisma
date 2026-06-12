@@ -13,6 +13,9 @@ model User {
   name          String?
   age           Int?
   gender        String?
+  interestedIn  InterestedIn @default(EVERYONE)
+  preferredSports String?
+  preferredSessionTypes String?
   bio           String?
   photos        String?  // JSON stringified array
   avgRating     Float    @default(0)
@@ -33,6 +36,7 @@ model Profile {
   genderPreference GenderPreference
   title           String
   location        String
+  scheduledAt     DateTime?
   maxInvites      Int      @default(1)
   goDutch         Boolean  @default(false)
   moreInfo        String?
@@ -77,6 +81,12 @@ enum GenderPreference {
   MEN_ONLY
   WOMEN_ONLY
   ANY
+}
+
+enum InterestedIn {
+  MEN
+  WOMEN
+  EVERYONE
 }
 
 enum RequestStatus {

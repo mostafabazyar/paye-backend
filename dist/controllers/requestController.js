@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserReceivedRequests = exports.updateRequestStatus = exports.getProfileRequests = exports.sendRequest = void 0;
+exports.getRequestById = exports.getUserSentRequests = exports.getUserReceivedRequests = exports.updateRequestStatus = exports.getProfileRequests = exports.sendRequest = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const sendRequest = async (req, res) => {
@@ -163,3 +163,65 @@ const getUserReceivedRequests = async (req, res) => {
     }
 };
 exports.getUserReceivedRequests = getUserReceivedRequests;
+const getUserSentRequests = async (req, res) => {
+    try {
+        const userId = req.user?.id || req.userId;
+        if (!userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        const requests = await prisma.request.findMany({
+            where: {
+                requesterId: userId
+            },
+            include: {
+                profile: true,
+                requester: {
+                    select: { id: true, phone: true }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json({ success: true, requests });
+    }
+    catch (error) {
+        console.error('Get sent requests error:', error);
+        res.status(500).json({ error: 'Failed to get sent requests' });
+    }
+};
+exports.getUserSentRequests = getUserSentRequests;
+const getRequestById = async (req, res) => {
+    try {
+        const userId = req.user?.id || req.userId;
+        const { id } = req.params;
+        if (!userId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        const request = await prisma.request.findFirst({
+            where: {
+                id: parseInt(id || '0'),
+                OR: [
+                    { requesterId: userId },
+                    { receiverId: userId }
+                ]
+            },
+            include: {
+                profile: true,
+                requester: {
+                    select: { id: true, phone: true }
+                }
+            }
+        });
+        if (!request) {
+            res.status(404).json({ error: 'Request not found' });
+            return;
+        }
+        res.json({ success: true, request });
+    }
+    catch (error) {
+        console.error('Get request error:', error);
+        res.status(500).json({ error: 'Failed to get request' });
+    }
+};
+exports.getRequestById = getRequestById;
