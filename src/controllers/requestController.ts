@@ -168,18 +168,18 @@ const getUserReceivedRequests = async (req: RequestControllerRequest, res: Respo
     const requests = await prisma.request.findMany({
       where: {
         receiverId: userId,
-        status: 'PENDING'
       },
       include: {
         requester: {
           select: {
             id: true,
-            phone: true
-          }
+            phone: true,
+            name: true,
+          },
         },
-        profile: true
+        profile: true,
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { updatedAt: 'desc' },
     });
 
     res.json({ success: true, requests });
@@ -204,11 +204,14 @@ const getUserSentRequests = async (req: RequestControllerRequest, res: Response)
       },
       include: {
         profile: true,
+        receiver: {
+          select: { id: true, name: true, phone: true },
+        },
         requester: {
-          select: { id: true, phone: true }
-        }
+          select: { id: true, phone: true, name: true },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { updatedAt: 'desc' },
     });
 
     res.json({ success: true, requests });

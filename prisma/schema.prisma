@@ -23,6 +23,8 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  messages  Message[]
+
   // Relations
   profiles      Profile[]
   sentRequests  Request[] @relation("SentRequests")
@@ -69,6 +71,17 @@ model Request {
   @@index([requesterId])
   @@index([receiverId])
   @@index([status])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  text      String
+  senderId  String
+  sessionId String
+  sender    User     @relation(fields: [senderId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
 }
 
 enum ExerciseType {
