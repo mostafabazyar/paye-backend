@@ -1,0 +1,248 @@
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 18px;
+  color: #868e96;
+}
+
+.container {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 20px;
+}
+
+.card {
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerTop h1 {
+  margin: 0;
+}
+
+.subtitle {
+  color: #868e96;
+  margin-top: 5px;
+}
+
+.logoutButton {
+  padding: 8px 16px;
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.logoutButton:hover {
+  background-color: #e03131;
+}
+
+.otpSection {
+  margin-top: 20px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.autoRefreshLabel {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.refreshButton {
+  padding: 8px 16px;
+  background-color: #f1f3f5;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.error {
+  padding: 12px;
+  background-color: #fff5f5;
+  color: #e03131;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.otpResult {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+}
+
+.otpDisplay {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.otpCodeContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.otpCode {
+  font-size: 48px;
+  font-weight: bold;
+  color: #0070f3;
+  font-family: monospace;
+  letter-spacing: 4px;
+  padding: 10px 20px;
+  background-color: white;
+  border-radius: 8px;
+  border: 2px dashed #0070f3;
+}
+
+.copyButtonSmall {
+  padding: 8px 12px;
+  background-color: #51cf66;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.copyButtonSmall:hover {
+  background-color: #40c057;
+}
+
+.otpInfo {
+  font-size: 14px;
+  color: #495057;
+  flex: 1;
+}
+
+.otpStatus {
+  margin-bottom: 8px;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.timeRemaining {
+  color: #0070f3;
+  font-weight: 600;
+  margin-left: 5px;
+}
+
+.noOtp {
+  padding: 30px;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.hint {
+  color: #868e96;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.divider {
+  margin: 30px 0;
+  border: none;
+  border-top: 2px solid #e9ecef;
+}
+
+.allOtpsSection {
+  margin-top: 10px;
+}
+
+.otpList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.otpItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.otpItemPhone {
+  font-weight: 500;
+  flex: 1;
+}
+
+.otpItemCode {
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 18px;
+  color: #0070f3;
+  flex: 1;
+  text-align: center;
+}
+
+.otpItemStatus {
+  flex: 1;
+  text-align: center;
+}
+
+.smallCopyButton {
+  padding: 4px 8px;
+  background-color: transparent;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.smallCopyButton:hover {
+  background-color: #f1f3f5;
+}
+
+.noData {
+  text-align: center;
+  color: #868e96;
+  padding: 20px;
+}

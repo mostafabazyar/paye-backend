@@ -1,0 +1,489 @@
+{
+  "HomePage": {
+    "title": "Paye",
+    "nav": {
+      "features": "Features",
+      "sports": "Sports",
+      "about": "About",
+      "signIn": "Sign In"
+    },
+    "hero": {
+      "line1": "Find Your Perfect",
+      "line2": "Workout Partner",
+      "subtitle": "Connect with like-minded athletes, discover local sports events, and achieve your fitness goals together."
+    },
+    "pills": {
+      "athletes": "10K+ Athletes",
+      "cities": "50+ Cities",
+      "events": "100+ Events"
+    },
+    "login": {
+      "welcome": "Welcome to Paye",
+      "subtitle": "Enter your phone number to get started",
+      "phoneLabel": "Phone Number",
+      "phonePlaceholder": "+98 9XX XXX XXXX",
+      "sending": "Sending OTP...",
+      "getStarted": "Get Started",
+      "agree": "By continuing, you agree to our",
+      "terms": "Terms",
+      "and": "and",
+      "privacy": "Privacy Policy"
+    },
+    "otpSent": "OTP Sent! Check your messages.",
+    "otpFailed": "Failed to send OTP",
+    "sports": {
+      "title": "Find Your <highlight>Sport</highlight>",
+      "subtitle": "Select the sports you're interested in to find the perfect workout partner",
+      "selected": "Selected: {count} sports",
+      "clear": "Clear All"
+    },
+    "features": {
+      "title": "Why Choose <highlight>Paye</highlight>",
+      "subtitle": "Everything you need to find your perfect workout partner and achieve your fitness goals",
+      "partners": {
+        "title": "Find Partners",
+        "desc": "Connect with athletes who share your interests and skill level in your area"
+      },
+      "events": {
+        "title": "Join Events",
+        "desc": "Discover and join local sports events, tournaments, and training sessions"
+      },
+      "progress": {
+        "title": "Track Progress",
+        "desc": "Monitor your fitness journey, set goals, and celebrate achievements together"
+      }
+    },
+    "about": {
+      "title": "About <highlight>Paye</highlight>",
+      "body": "Paye is more than just a platform - it's a community of fitness enthusiasts dedicated to helping each other grow. Whether you're a beginner looking for guidance or an experienced athlete seeking new challenges, Paye connects you with the right people.",
+      "verified": "Verified Users",
+      "active": "24/7 Active"
+    },
+    "stats": {
+      "users": "Active Users",
+      "events": "Events Monthly",
+      "satisfaction": "Satisfaction Rate",
+      "cities": "Cities Covered"
+    },
+    "footer": {
+      "tagline": "Find your perfect workout partner and achieve your fitness goals together.",
+      "quickLinks": "Quick Links",
+      "aboutUs": "About Us",
+      "events": "Events",
+      "support": "Support",
+      "help": "Help Center",
+      "faq": "FAQ",
+      "contact": "Contact Us",
+      "location": "Iran, Tehran",
+      "copyright": "© 2026 Paye. All rights reserved. Made with ❤️ for fitness enthusiasts."
+    }
+  },
+  "Sports": {
+    "football": "Football",
+    "basketball": "Basketball",
+    "tennis": "Tennis",
+    "swimming": "Swimming",
+    "running": "Running",
+    "cycling": "Cycling",
+    "gym": "Gym",
+    "yoga": "Yoga",
+    "boxing": "Boxing",
+    "hiking": "Hiking",
+    "badminton": "Badminton",
+    "volleyball": "Volleyball"
+  },
+    "LoginPage": {
+    "title": "Paye",
+    "subtitle": "Find your perfect workout partner",
+    "phoneLabel": "Phone Number",
+    "phonePlaceholder": "+98 9XX XXX XXXX",
+    "phoneRequired": "Valid phone number is required",
+    "sending": "Sending OTP...",
+    "sendOtp": "Send OTP",
+    "otpSent": "OTP Sent! Check your messages.",
+    "otpFailed": "Failed to send OTP",
+    "agree": "By continuing, you agree to our",
+    "terms": "Terms",
+    "and": "and",
+    "privacy": "Privacy Policy"
+  },
+  "ProfileSetupPage": {
+    "title": "Complete Your Profile",
+    "nameLabel": "Full Name",
+    "namePlaceholder": "John Doe",
+    "ageLabel": "Age",
+    "genderLabel": "Gender",
+    "genderPlaceholder": "Select gender",
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "interestedInLabel": "Interested in",
+    "interestedInPlaceholder": "Who are you interested in?",
+    "interestedIn": {
+      "men": "Men",
+      "women": "Women",
+      "everyone": "Everyone"
+    },
+    "sportsLabel": "Interested sports",
+    "sessionTypesLabel": "Preferred session style",
+    "sessionTypes": {
+      "oneOnOne": "1:1 Session",
+      "oneOnMany": "Small Group",
+      "manyOnMany": "Open Session"
+    },
+    "bioLabel": "Bio (Optional)",
+    "bioPlaceholder": "Tell others about yourself...",
+    "saving": "Saving Profile...",
+    "submit": "Continue to Dashboard",
+    "success": "Profile Completed!",
+    "errorTitle": "Error",
+    "errorFallback": "Something went wrong",
+    "errors": {
+      "nameMin": "Name must be at least 2 characters",
+      "ageMin": "Must be at least 16",
+      "ageMax": "Must be 70 or younger"
+    }
+  },
+  "VerifyPage": {
+    "title": "Enter OTP",
+    "sentTo": "Sent to",
+    "otpLength": "OTP must be 6 digits",
+    "verifying": "Verifying...",
+    "verify": "Verify",
+    "success": "Successfully logged in!",
+    "invalidOtp": "Invalid OTP",
+    "resendIn": "Resend available in {countdown}s",
+    "resend": "Resend OTP"
+  },
+  "ProtectedLayout": {
+    "loading": "Loading..."
+  },
+  "ChatListPage": {
+    "title": "Messages",
+    "subtitle": "Chat with your matches and plan your next workout",
+    "loading": "Loading conversations...",
+    "emptyTitle": "No chats yet",
+    "emptyDesc": "Once a session request is approved, your conversation will appear here.",
+    "viewRequests": "View Requests",
+    "fallbackUser": "User",
+    "sessionMatch": "Session match"
+  },
+  "ChatPage": {
+    "fallbackUser": "User",
+    "approvedMatch": "Approved match",
+    "typing": "typing…",
+    "replyingTo": "Replying to:",
+    "placeholder": "Message…"
+  },
+  "CreateListingPage": {
+    "badge": "Create",
+    "heading": "Post a new listing",
+    "intro": "Build a clean session listing that shows who you want to meet, where it happens, and how people can join.",
+    "feature1Title": "Quick setup",
+    "feature1Desc": "Most fields are one tap away.",
+    "feature2Title": "Better match quality",
+    "feature2Desc": "Clear preferences reduce bad joins.",
+    "badge1": "Clean cards",
+    "badge2": "Mobile friendly",
+    "badge3": "Fast sharing",
+    "tipsTitle": "Tips",
+    "tipsBody": "Keep the title short, use clear sports keywords, and add a friendly note so the right people know what to expect.",
+    "formTitle": "Listing details",
+    "formSubtitle": "Fill in the essentials to create a polished session card.",
+    "titleLabel": "Title",
+    "titlePlaceholder": "e.g. Morning Tennis Run",
+    "titleHint": "Short, direct titles work best in the feed.",
+    "sportLabel": "Sport",
+    "sportPlaceholder": "Choose a sport",
+    "sportHint": "Pick the main sport for this listing.",
+    "exerciseTypeLabel": "Exercise type",
+    "exerciseTypePlaceholder": "Choose type",
+    "exerciseTypes": {
+      "ONE_ON_ONE": {
+        "label": "One on One",
+        "description": "A focused session with one partner."
+      },
+      "ONE_ON_MANY": {
+        "label": "One on Many",
+        "description": "Lead a small group workout."
+      },
+      "MANY_ON_MANY": {
+        "label": "Many on Many",
+        "description": "Open the session to a larger crew."
+      }
+    },
+    "locationLabel": "Location",
+    "locationPlaceholder": "e.g. Tehran",
+    "locationHint": "Show where the session will happen.",
+    "useLocation": "Use my location",
+    "locating": "Locating...",
+    "locationUnavailable": "Location is not available in this browser",
+    "locationAdded": "Location added",
+    "locationFailed": "Could not get your location",
+    "genderLabel": "Gender preference",
+    "genderPlaceholder": "Choose preference",
+    "genders": {
+      "ANY": {
+        "label": "Any",
+        "description": "Open to everyone."
+      },
+      "MALE": {
+        "label": "Male",
+        "description": "Male partners only."
+      },
+      "FEMALE": {
+        "label": "Female",
+        "description": "Female partners only."
+      }
+    },
+    "maxInvitesLabel": "Max invites",
+    "maxInvitesHint": "How many people can join this listing.",
+    "scheduleLabel": "Schedule time",
+    "scheduleHint": "Pick a future time. Past times are blocked and expired events are auto-disabled.",
+    "moreInfoLabel": "Additional information",
+    "moreInfoPlaceholder": "Share the pace, level, or anything useful for people joining.",
+    "moreInfoHint": "Add helpful context to improve responses.",
+    "footerNote": "You can review and edit the listing after it is created.",
+    "creating": "Creating...",
+    "submit": "Create Listing",
+    "success": "Listing created successfully!",
+    "errorFallback": "Failed to create listing"
+  },
+  "ExplorePage": {
+    "badge": "Explore",
+    "heading": "Find sessions that feel personal, current, and easy to join.",
+    "subtitle": "Browse active listings with a stronger visual hierarchy, exercise-specific cover art, and a clear event time.",
+    "filters": "Filters",
+    "sportPlaceholder": "Search by sport...",
+    "locationPlaceholder": "Location",
+    "allSessionTypes": "All session types",
+    "anyGender": "Any gender",
+    "sortPlaceholder": "Sort results",
+    "sortNewest": "Newest first",
+    "sortSoonest": "Soonest first",
+    "sortOldest": "Oldest first",
+    "useLocation": "Use my location",
+    "locating": "Locating...",
+    "apply": "Apply Filters",
+    "clear": "Clear",
+    "listingCount": "{count} active listing",
+    "listingCount_plural": "{count} active listings",
+    "empty": "No listings found",
+    "timePending": "Time updated soon",
+    "schedulePending": "Schedule pending",
+    "scheduleTime": "Schedule time",
+    "lookingForPartner": "Looking for a {sport} partner",
+    "host": "Host",
+    "locationPending": "Location pending",
+    "sessionDetails": "Session details",
+    "sessionType": "Session type",
+    "genderPreference": "Gender preference",
+    "eventTime": "Event time",
+    "join": "Join Session",
+    "sending": "Sending...",
+    "requestSent": "Request sent successfully!",
+    "requestFailed": "Failed to send request",
+    "locationUnavailable": "Location is not available in this browser",
+    "locationAdded": "Location added to filters",
+    "locationFailed": "Could not get your location",
+    "exerciseTypes": {
+      "ONE_ON_ONE": "1:1 Session",
+      "ONE_ON_MANY": "Small Group",
+      "MANY_ON_MANY": "Open Session"
+    },
+    "genders": {
+      "ANY": "Open to Any Gender",
+      "MALE": "Male Only",
+      "FEMALE": "Female Only"
+    },
+    "artLabels": {
+      "swim": "Swim",
+      "tennis": "Tennis",
+      "run": "Run",
+      "cycle": "Cycle",
+      "gym": "Gym",
+      "sport": "Sport"
+    }
+  },
+  "EditProfilePage": {
+    "loadFailed": "Failed to load profile",
+    "updateSuccess": "Profile updated successfully",
+    "updateFailed": "Failed to update profile",
+    "fallbackName": "Your Name",
+    "noLocation": "No location selected",
+    "personalTitle": "Personal Information",
+    "personalDesc": "Basic details visible on your profile",
+    "nameLabel": "Full Name",
+    "namePlaceholder": "John Doe",
+    "phoneLabel": "Phone Number",
+    "phonePlaceholder": "+98 9XX XXX XXXX",
+    "ageLabel": "Age",
+    "locationLabel": "Location",
+    "locationPlaceholder": "Tehran",
+    "interestedInLabel": "Interested In",
+    "interestedInPlaceholder": "Select preference",
+    "interestedIn": {
+      "men": "Men",
+      "women": "Women",
+      "everyone": "Everyone"
+    },
+    "sportsTitle": "Sports Interests",
+    "sportsDesc": "Select the sports you enjoy",
+    "sessionTitle": "Session Preferences",
+    "sessionDesc": "Choose your preferred play style",
+    "sessionTypes": {
+      "oneOnOne": "1:1 Session",
+      "oneOnMany": "Small Group",
+      "manyOnMany": "Open Session"
+    },
+    "aboutTitle": "About Me",
+    "aboutDesc": "Tell others about yourself",
+    "bioLabel": "Bio",
+    "bioPlaceholder": "Tell people about yourself, your sports interests, and what kind of partners you're looking for...",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "save": "Save Changes"
+  },
+  "ProfilePage": {
+    "loadFailed": "Failed to load profile",
+    "badge": "Profile",
+    "fallbackName": "Your profile",
+    "fallbackBio": "Add a short bio so people know what kind of partner you are looking for.",
+    "edit": "Edit",
+    "interestedInLabel": "Interested in",
+    "interestedIn": {
+      "MEN": "Men",
+      "WOMEN": "Women",
+      "EVERYONE": "Everyone"
+    },
+    "interestedInHint": "Dating-style preference for discovery and suggestions.",
+    "identityLabel": "Identity",
+    "genderValues": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "notSpecified": "Not specified",
+    "na": "n/a",
+    "ageLine": "Age {age} and profile basics.",
+    "discoveryTitle": "Discovery preferences",
+    "sportsLabel": "Interested sports",
+    "noSports": "No sports selected yet.",
+    "sessionLabel": "Preferred session style",
+    "noSessions": "No session style selected yet.",
+    "sessionTypes": {
+      "oneOnOne": "1:1 Session",
+      "oneOnMany": "Small Group",
+      "manyOnMany": "Open Session"
+    },
+    "personalTitle": "Personal information",
+    "ageLabel": "Age",
+    "genderLabel": "Gender",
+    "phoneLabel": "Phone",
+    "locationLabel": "Location",
+    "badgeClean": "Clean profile",
+    "badgeInterest": "Dating-style interest"
+  },
+  "RequestsPage": {
+    "badge": "Requests & Listings",
+    "heading": "Manage incoming and outgoing session requests.",
+    "subtitle": "Review approvals, follow up on pending invites, and keep all of your matches in one clean place.",
+    "statReceived": "Received",
+    "statListings": "My Listings",
+    "tabReceived": "Received ({count})",
+    "tabSent": "Sent ({count})",
+    "tabListings": "My Listings ({count})",
+    "emptyReceived": "No incoming requests yet",
+    "emptySent": "No outgoing requests yet",
+    "emptyListings": "You haven't created any profile listings yet",
+    "loadingListings": "Loading your listings...",
+    "status": {
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "pending": "Pending"
+    },
+    "justNow": "Just now",
+    "sessionRequest": "Session request",
+    "locationPending": "Location pending",
+    "joinRequest": "Join request",
+    "fromUser": "From {name}",
+    "accept": "Accept",
+    "accepting": "Accepting...",
+    "reject": "Reject",
+    "rejecting": "Rejecting...",
+    "openChat": "Open Chat",
+    "yourRequest": "Your request",
+    "chatWith": "Chat with {name}",
+    "host": "host",
+    "sentOn": "Sent on",
+    "matchApproved": "Match approved",
+    "active": "Active",
+    "expired": "Expired",
+    "totalJoins": "Total Incoming Joins",
+    "requestCount": "{count} requests",
+    "editListing": "Edit Listing",
+    "toastApproved": "Request approved!",
+    "toastRejected": "Request rejected!",
+    "updateFailed": "Failed to update"
+  },
+  "EditListingPage": {
+    "loading": "Loading session settings...",
+    "notFoundTitle": "Listing profile not found",
+    "notFoundDesc": "The listing might have been removed, or you do not have permission to view it.",
+    "returnToRequests": "Return to Requests",
+    "back": "Back to Requests",
+    "badge": "Workspace Management",
+    "heading": "Edit Session Listing",
+    "subtitle": "Modify structural information, attendance constraints, preferences, or update status toggles for this targeted host profile.",
+    "paramsTitle": "Listing Parameters",
+    "paramsDesc": "Update your public session invite configuration.",
+    "visibility": "Listing Visibility Status",
+    "active": "Active",
+    "expired": "Expired / Paused",
+    "titleLabel": "Session Title",
+    "titlePlaceholder": "e.g., Morning Tennis Match",
+    "locationLabel": "Location",
+    "locationPlaceholder": "e.g., Downtown Sports Complex, Court 3",
+    "sportsLabel": "Sports / Activity Tags",
+    "sportsPlaceholder": "Tennis, Basketball, Cardio (comma separated)",
+    "sportsHint": "Separate values with commas to render clean interface badges.",
+    "exerciseTypeLabel": "Exercise Type",
+    "exercise": {
+      "ONE_ON_ONE": "One on One",
+      "GROUP": "Group Training"
+    },
+    "genderLabel": "Gender Preference",
+    "gender": {
+      "ANY": "Anyone Welcome",
+      "WOMEN_ONLY": "Women Only",
+      "MEN_ONLY": "Men Only"
+    },
+    "maxInvites": "Max Invites",
+    "goDutch": "Split Costs (Go Dutch)",
+    "moreInfoLabel": "Additional Information",
+    "moreInfoPlaceholder": "Share details regarding equipment availability, expected match level skill levels, or directions...",
+    "cancel": "Cancel",
+    "saving": "Saving updates...",
+    "save": "Save Changes",
+    "updateSuccess": "Listing updated successfully!",
+    "updateFailed": "Failed to update listing profile.",
+    "requiredFields": "Title and Location fields are required."
+  },
+  "Navbar": {
+    "brand": "Paye",
+    "tagline": "Find your match",
+    "explore": "Explore",
+    "welcome": "Welcome back,",
+    "logout": "Log out",
+    "signIn": "Sign In"
+  },
+  "Sidebar": {
+    "create": "Create",
+    "requests": "Requests",
+    "explore": "Explore",
+    "messages": "Messages",
+    "profile": "Profile"
+  }
+}

@@ -1,0 +1,488 @@
+{
+  "HomePage": {
+    "title": "پایه",
+    "nav": {
+      "features": "ویژگی‌ها",
+      "sports": "ورزش‌ها",
+      "about": "درباره ما",
+      "signIn": "ورود"
+    },
+    "hero": {
+      "line1": "شریک ورزشی",
+      "line2": "ایده‌آل خود را پیدا کنید",
+      "subtitle": "با ورزشکاران هم‌فکر ارتباط برقرار کنید، رویدادهای ورزشی محلی را کشف کنید و با هم به اهداف تناسب اندام خود برسید."
+    },
+    "pills": {
+      "athletes": "بیش از ۱۰ هزار ورزشکار",
+      "cities": "بیش از ۵۰ شهر",
+      "events": "بیش از ۱۰۰ رویداد"
+    },
+    "login": {
+      "welcome": "به پایه خوش آمدید",
+      "subtitle": "شماره موبایل خود را وارد کنید تا شروع کنید",
+      "phoneLabel": "شماره موبایل",
+      "phonePlaceholder": "+۹۸ ۹XX XXX XXXX",
+      "sending": "در حال ارسال کد...",
+      "getStarted": "شروع کنید",
+      "agree": "با ادامه دادن، شما با",
+      "terms": "شرایط استفاده",
+      "and": "و",
+      "privacy": "سیاست حریم خصوصی"
+    },
+    "otpSent": "کد تأیید ارسال شد! پیامک خود را بررسی کنید.",
+    "otpFailed": "ارسال کد تأیید ناموفق بود",
+    "sports": {
+      "title": "ورزش <highlight>خود</highlight> را پیدا کنید",
+      "subtitle": "ورزش‌های مورد علاقه خود را انتخاب کنید تا شریک تمرینی ایده‌آل را پیدا کنید",
+      "selected": "انتخاب شده: {count} ورزش",
+      "clear": "پاک کردن همه"
+    },
+    "features": {
+      "title": "چرا <highlight>پایه</highlight>؟",
+      "subtitle": "همه چیزهایی که برای پیدا کردن شریک تمرینی ایده‌آل و رسیدن به اهداف تناسب اندام نیاز دارید",
+      "partners": {
+        "title": "پیدا کردن شریک",
+        "desc": "با ورزشکارانی که علایق و سطح مهارت مشابه شما دارند در منطقه خود ارتباط برقرار کنید"
+      },
+      "events": {
+        "title": "شرکت در رویدادها",
+        "desc": "رویدادها، تورنمنت‌ها و جلسات تمرینی ورزشی محلی را کشف و در آن‌ها شرکت کنید"
+      },
+      "progress": {
+        "title": "پیگیری پیشرفت",
+        "desc": "مسیر تناسب اندام خود را دنبال کنید، هدف تعیین کنید و با هم موفقیت‌ها را جشن بگیرید"
+      }
+    },
+    "about": {
+      "title": "درباره <highlight>پایه</highlight>",
+      "body": "پایه فقط یک پلتفرم نیست — یک جامعه از علاقه‌مندان به تناسب اندام است که به رشد یکدیگر کمک می‌کنند. چه مبتدی باشید و به راهنمایی نیاز داشته باشید، چه ورزشکار باتجربه‌ای که به دنبال چالش‌های جدید است، پایه شما را به افراد مناسب متصل می‌کند.",
+      "verified": "کاربران تأییدشده",
+      "active": "فعال ۲۴ ساعته"
+    },
+    "stats": {
+      "users": "کاربران فعال",
+      "events": "رویداد ماهانه",
+      "satisfaction": "رضایت کاربران",
+      "cities": "شهرهای تحت پوشش"
+    },
+    "footer": {
+      "tagline": "شریک ورزشی ایده‌آل خود را پیدا کنید و با هم به اهداف تناسب اندام برسید.",
+      "quickLinks": "لینک‌های سریع",
+      "aboutUs": "درباره ما",
+      "events": "رویدادها",
+      "support": "پشتیبانی",
+      "help": "مرکز راهنمایی",
+      "faq": "سوالات متداول",
+      "contact": "تماس با ما",
+      "location": "ایران، تهران",
+      "copyright": "© ۲۰۲۶ پایه. تمامی حقوق محفوظ است. ساخته‌شده با ❤️ برای علاقه‌مندان به تناسب اندام."
+    }
+  },
+  "Sports": {
+    "football": "فوتبال",
+    "basketball": "بسکتبال",
+    "tennis": "تنیس",
+    "swimming": "شنا",
+    "running": "دویدن",
+    "cycling": "دوچرخه‌سواری",
+    "gym": "باشگاه",
+    "yoga": "یوگا",
+    "boxing": "بوکس",
+    "hiking": "کوهنوردی",
+    "badminton": "بدمینتون",
+    "volleyball": "والیبال"
+  },
+  "LoginPage": {
+    "title": "پایه",
+    "subtitle": "شریک ورزشی ایده‌آل خود را پیدا کنید",
+    "phoneLabel": "شماره موبایل",
+    "phonePlaceholder": "+۹۸ ۹XX XXX XXXX",
+    "phoneRequired": "شماره موبایل معتبر الزامی است",
+    "sending": "در حال ارسال کد...",
+    "sendOtp": "ارسال کد تأیید",
+    "otpSent": "کد تأیید ارسال شد! پیامک خود را بررسی کنید.",
+    "otpFailed": "ارسال کد تأیید ناموفق بود",
+    "agree": "با ادامه دادن، شما با",
+    "terms": "شرایط استفاده",
+    "and": "و",
+    "privacy": "سیاست حریم خصوصی"
+  },
+  "ProfileSetupPage": {
+    "title": "تکمیل پروفایل",
+    "nameLabel": "نام کامل",
+    "namePlaceholder": "علی رضایی",
+    "ageLabel": "سن",
+    "genderLabel": "جنسیت",
+    "genderPlaceholder": "جنسیت را انتخاب کنید",
+    "gender": {
+      "male": "مرد",
+      "female": "زن",
+      "other": "سایر"
+    },
+    "interestedInLabel": "علاقه‌مند به",
+    "interestedInPlaceholder": "به چه کسانی علاقه‌مندید؟",
+    "interestedIn": {
+      "men": "مردان",
+      "women": "زنان",
+      "everyone": "همه"
+    },
+    "sportsLabel": "ورزش‌های مورد علاقه",
+    "sessionTypesLabel": "سبک جلسه مورد علاقه",
+    "sessionTypes": {
+      "oneOnOne": "جلسه ۱ به ۱",
+      "oneOnMany": "گروه کوچک",
+      "manyOnMany": "جلسه باز"
+    },
+    "bioLabel": "بیو (اختیاری)",
+    "bioPlaceholder": "درباره خودتان بنویسید...",
+    "saving": "در حال ذخیره پروفایل...",
+    "submit": "ادامه به داشبورد",
+    "success": "پروفایل با موفقیت تکمیل شد!",
+    "errorTitle": "خطا",
+    "errorFallback": "مشکلی پیش آمد",
+    "errors": {
+      "nameMin": "نام باید حداقل ۲ کاراکتر باشد",
+      "ageMin": "حداقل سن ۱۶ سال است",
+      "ageMax": "حداکثر سن ۷۰ سال است"
+    }
+  },
+  "VerifyPage": {
+    "title": "کد تأیید را وارد کنید",
+    "sentTo": "ارسال شده به",
+    "otpLength": "کد تأیید باید ۶ رقم باشد",
+    "verifying": "در حال تأیید...",
+    "verify": "تأیید",
+    "success": "با موفقیت وارد شدید!",
+    "invalidOtp": "کد تأیید نامعتبر است",
+    "resendIn": "ارسال مجدد تا {countdown} ثانیه دیگر",
+    "resend": "ارسال مجدد کد"
+  },
+  "ProtectedLayout": {
+    "loading": "در حال بارگذاری..."
+  },
+  "ChatListPage": {
+    "title": "پیام‌ها",
+    "subtitle": "با مچ‌های خود چت کنید و تمرین بعدی را برنامه‌ریزی کنید",
+    "loading": "در حال بارگذاری گفتگوها...",
+    "emptyTitle": "هنوز گفتگویی نیست",
+    "emptyDesc": "پس از تأیید درخواست جلسه، گفتگوی شما اینجا نمایش داده می‌شود.",
+    "viewRequests": "مشاهده درخواست‌ها",
+    "fallbackUser": "کاربر",
+    "sessionMatch": "مچ جلسه"
+  },
+  "ChatPage": {
+    "fallbackUser": "کاربر",
+    "approvedMatch": "مچ تأییدشده",
+    "typing": "در حال نوشتن…",
+    "replyingTo": "در پاسخ به:",
+    "placeholder": "پیام…"
+  },
+  "CreateListingPage": {
+    "badge": "ایجاد",
+    "heading": "ثبت آگهی جدید",
+    "intro": "یک آگهی جلسه تمیز بسازید که نشان دهد با چه کسی می‌خواهید ملاقات کنید، کجا برگزار می‌شود و چطور می‌توانند بپیوندند.",
+    "feature1Title": "راه‌اندازی سریع",
+    "feature1Desc": "بیشتر فیلدها فقط یک ضربه فاصله دارند.",
+    "feature2Title": "کیفیت مچ بهتر",
+    "feature2Desc": "ترجیحات واضح، پیوستن‌های نامناسب را کم می‌کند.",
+    "badge1": "کارت‌های تمیز",
+    "badge2": "سازگار با موبایل",
+    "badge3": "اشتراک‌گذاری سریع",
+    "tipsTitle": "نکات",
+    "tipsBody": "عنوان را کوتاه نگه دارید، از کلمات کلیدی ورزشی واضح استفاده کنید و یادداشت دوستانه‌ای اضافه کنید تا افراد مناسب بدانند چه انتظاری داشته باشند.",
+    "formTitle": "جزئیات آگهی",
+    "formSubtitle": "موارد ضروری را پر کنید تا یک کارت جلسه مرتب بسازید.",
+    "titleLabel": "عنوان",
+    "titlePlaceholder": "مثلاً دویدن تنیس صبحگاهی",
+    "titleHint": "عنوان‌های کوتاه و مستقیم در فید بهتر کار می‌کنند.",
+    "sportLabel": "ورزش",
+    "sportPlaceholder": "یک ورزش انتخاب کنید",
+    "sportHint": "ورزش اصلی این آگهی را انتخاب کنید.",
+    "exerciseTypeLabel": "نوع تمرین",
+    "exerciseTypePlaceholder": "نوع را انتخاب کنید",
+    "exerciseTypes": {
+      "ONE_ON_ONE": {
+        "label": "یک به یک",
+        "description": "جلسه‌ای متمرکز با یک شریک."
+      },
+      "ONE_ON_MANY": {
+        "label": "یک به چند",
+        "description": "هدایت یک تمرین گروهی کوچک."
+      },
+      "MANY_ON_MANY": {
+        "label": "چند به چند",
+        "description": "جلسه را برای گروه بزرگ‌تر باز کنید."
+      }
+    },
+    "locationLabel": "مکان",
+    "locationPlaceholder": "مثلاً تهران",
+    "locationHint": "نشان دهید جلسه کجا برگزار می‌شود.",
+    "useLocation": "استفاده از موقعیت من",
+    "locating": "در حال یافتن موقعیت...",
+    "locationUnavailable": "موقعیت‌یابی در این مرورگر در دسترس نیست",
+    "locationAdded": "موقعیت اضافه شد",
+    "locationFailed": "نتوانستیم موقعیت شما را دریافت کنیم",
+    "genderLabel": "ترجیح جنسیت",
+    "genderPlaceholder": "ترجیح را انتخاب کنید",
+    "genders": {
+      "ANY": {
+        "label": "هر کسی",
+        "description": "باز برای همه."
+      },
+      "MALE": {
+        "label": "مرد",
+        "description": "فقط شرکای مرد."
+      },
+      "FEMALE": {
+        "label": "زن",
+        "description": "فقط شرکای زن."
+      }
+    },
+    "maxInvitesLabel": "حداکثر دعوت",
+    "maxInvitesHint": "چند نفر می‌توانند به این آگهی بپیوندند.",
+    "scheduleLabel": "زمان برنامه‌ریزی",
+    "scheduleHint": "زمانی در آینده انتخاب کنید. زمان‌های گذشته مسدود می‌شوند و رویدادهای منقضی خودکار غیرفعال می‌شوند.",
+    "moreInfoLabel": "اطلاعات بیشتر",
+    "moreInfoPlaceholder": "سرعت، سطح یا هر نکته مفیدی برای شرکت‌کنندگان بنویسید.",
+    "moreInfoHint": "زمینه مفید اضافه کنید تا پاسخ‌ها بهتر شوند.",
+    "footerNote": "پس از ایجاد می‌توانید آگهی را بررسی و ویرایش کنید.",
+    "creating": "در حال ایجاد...",
+    "submit": "ایجاد آگهی",
+    "success": "آگهی با موفقیت ایجاد شد!",
+    "errorFallback": "ایجاد آگهی ناموفق بود"
+  },
+  "ExplorePage": {
+    "badge": "کاوش",
+    "heading": "جلساتی پیدا کنید که شخصی، به‌روز و آسان برای پیوستن باشند.",
+    "subtitle": "آگهی‌های فعال را با سلسله‌مراتب بصری قوی‌تر، کاور اختصاصی هر ورزش و زمان رویداد واضح مرور کنید.",
+    "filters": "فیلترها",
+    "sportPlaceholder": "جستجو بر اساس ورزش...",
+    "locationPlaceholder": "مکان",
+    "allSessionTypes": "همه انواع جلسه",
+    "anyGender": "هر جنسیت",
+    "sortPlaceholder": "مرتب‌سازی نتایج",
+    "sortNewest": "جدیدترین اول",
+    "sortSoonest": "نزدیک‌ترین اول",
+    "sortOldest": "قدیمی‌ترین اول",
+    "useLocation": "استفاده از موقعیت من",
+    "locating": "در حال یافتن موقعیت...",
+    "apply": "اعمال فیلترها",
+    "clear": "پاک کردن",
+    "listingCount": "{count} آگهی فعال",
+    "empty": "آگهی‌ای پیدا نشد",
+    "timePending": "زمان به‌زودی مشخص می‌شود",
+    "schedulePending": "برنامه در انتظار",
+    "scheduleTime": "زمان برنامه",
+    "lookingForPartner": "به‌دنبال شریک {sport}",
+    "host": "میزبان",
+    "locationPending": "مکان در انتظار",
+    "sessionDetails": "جزئیات جلسه",
+    "sessionType": "نوع جلسه",
+    "genderPreference": "ترجیح جنسیت",
+    "eventTime": "زمان رویداد",
+    "join": "پیوستن به جلسه",
+    "sending": "در حال ارسال...",
+    "requestSent": "درخواست با موفقیت ارسال شد!",
+    "requestFailed": "ارسال درخواست ناموفق بود",
+    "locationUnavailable": "موقعیت‌یابی در این مرورگر در دسترس نیست",
+    "locationAdded": "موقعیت به فیلترها اضافه شد",
+    "locationFailed": "نتوانستیم موقعیت شما را دریافت کنیم",
+    "exerciseTypes": {
+      "ONE_ON_ONE": "جلسه ۱ به ۱",
+      "ONE_ON_MANY": "گروه کوچک",
+      "MANY_ON_MANY": "جلسه باز"
+    },
+    "genders": {
+      "ANY": "باز برای همه",
+      "MALE": "فقط مرد",
+      "FEMALE": "فقط زن"
+    },
+    "artLabels": {
+      "swim": "شنا",
+      "tennis": "تنیس",
+      "run": "دویدن",
+      "cycle": "دوچرخه",
+      "gym": "باشگاه",
+      "sport": "ورزش"
+    }
+  },
+  "EditProfilePage": {
+    "loadFailed": "بارگذاری پروفایل ناموفق بود",
+    "updateSuccess": "پروفایل با موفقیت به‌روزرسانی شد",
+    "updateFailed": "به‌روزرسانی پروفایل ناموفق بود",
+    "fallbackName": "نام شما",
+    "noLocation": "مکانی انتخاب نشده",
+    "personalTitle": "اطلاعات شخصی",
+    "personalDesc": "جزئیات پایه‌ای که در پروفایل شما دیده می‌شود",
+    "nameLabel": "نام کامل",
+    "namePlaceholder": "علی رضایی",
+    "phoneLabel": "شماره موبایل",
+    "phonePlaceholder": "+۹۸ ۹XX XXX XXXX",
+    "ageLabel": "سن",
+    "locationLabel": "مکان",
+    "locationPlaceholder": "تهران",
+    "interestedInLabel": "علاقه‌مند به",
+    "interestedInPlaceholder": "ترجیح را انتخاب کنید",
+    "interestedIn": {
+      "men": "مردان",
+      "women": "زنان",
+      "everyone": "همه"
+    },
+    "sportsTitle": "علاقه‌مندی‌های ورزشی",
+    "sportsDesc": "ورزش‌هایی که دوست دارید را انتخاب کنید",
+    "sessionTitle": "ترجیحات جلسه",
+    "sessionDesc": "سبک بازی مورد علاقه خود را انتخاب کنید",
+    "sessionTypes": {
+      "oneOnOne": "جلسه ۱ به ۱",
+      "oneOnMany": "گروه کوچک",
+      "manyOnMany": "جلسه باز"
+    },
+    "aboutTitle": "درباره من",
+    "aboutDesc": "درباره خودتان به دیگران بگویید",
+    "bioLabel": "بیو",
+    "bioPlaceholder": "درباره خودتان، علایق ورزشی و نوع شریکی که به‌دنبال آن هستید بنویسید...",
+    "cancel": "انصراف",
+    "saving": "در حال ذخیره...",
+    "save": "ذخیره تغییرات"
+  },
+  "ProfilePage": {
+    "loadFailed": "بارگذاری پروفایل ناموفق بود",
+    "badge": "پروفایل",
+    "fallbackName": "پروفایل شما",
+    "fallbackBio": "یک بیو کوتاه اضافه کنید تا دیگران بدانند به دنبال چه شریکی هستید.",
+    "edit": "ویرایش",
+    "interestedInLabel": "علاقه‌مند به",
+    "interestedIn": {
+      "MEN": "مردان",
+      "WOMEN": "زنان",
+      "EVERYONE": "همه"
+    },
+    "interestedInHint": "ترجیح سبک دوستیابی برای کشف و پیشنهادها.",
+    "identityLabel": "هویت",
+    "genderValues": {
+      "male": "مرد",
+      "female": "زن",
+      "other": "سایر"
+    },
+    "notSpecified": "مشخص نشده",
+    "na": "نامشخص",
+    "ageLine": "سن {age} و اطلاعات پایه پروفایل.",
+    "discoveryTitle": "ترجیحات کشف",
+    "sportsLabel": "ورزش‌های مورد علاقه",
+    "noSports": "هنوز ورزشی انتخاب نشده است.",
+    "sessionLabel": "سبک جلسه مورد علاقه",
+    "noSessions": "هنوز سبک جلسه‌ای انتخاب نشده است.",
+    "sessionTypes": {
+      "oneOnOne": "جلسه ۱ به ۱",
+      "oneOnMany": "گروه کوچک",
+      "manyOnMany": "جلسه باز"
+    },
+    "personalTitle": "اطلاعات شخصی",
+    "ageLabel": "سن",
+    "genderLabel": "جنسیت",
+    "phoneLabel": "تلفن",
+    "locationLabel": "مکان",
+    "badgeClean": "پروفایل تمیز",
+    "badgeInterest": "علاقه به سبک دوستیابی"
+  },
+  "RequestsPage": {
+    "badge": "درخواست‌ها و آگهی‌ها",
+    "heading": "درخواست‌های ورودی و خروجی جلسه را مدیریت کنید.",
+    "subtitle": "تأییدها را بررسی کنید، دعوت‌های در انتظار را پیگیری کنید و همه مچ‌های خود را در یک جای مرتب نگه دارید.",
+    "statReceived": "دریافتی",
+    "statListings": "آگهی‌های من",
+    "tabReceived": "دریافتی ({count})",
+    "tabSent": "ارسال‌شده ({count})",
+    "tabListings": "آگهی‌های من ({count})",
+    "emptyReceived": "هنوز درخواست ورودی‌ای نیست",
+    "emptySent": "هنوز درخواست خروجی‌ای نیست",
+    "emptyListings": "هنوز هیچ آگهی پروفایلی نساخته‌اید",
+    "loadingListings": "در حال بارگذاری آگهی‌های شما...",
+    "status": {
+      "approved": "تأیید شده",
+      "rejected": "رد شده",
+      "pending": "در انتظار"
+    },
+    "justNow": "همین الان",
+    "sessionRequest": "درخواست جلسه",
+    "locationPending": "مکان در انتظار",
+    "joinRequest": "درخواست پیوستن",
+    "fromUser": "از {name}",
+    "accept": "پذیرش",
+    "accepting": "در حال پذیرش...",
+    "reject": "رد",
+    "rejecting": "در حال رد...",
+    "openChat": "باز کردن چت",
+    "yourRequest": "درخواست شما",
+    "chatWith": "چت با {name}",
+    "host": "میزبان",
+    "sentOn": "ارسال شده در",
+    "matchApproved": "مچ تأیید شد",
+    "active": "فعال",
+    "expired": "منقضی",
+    "totalJoins": "کل درخواست‌های ورودی",
+    "requestCount": "{count} درخواست",
+    "editListing": "ویرایش آگهی",
+    "toastApproved": "درخواست تأیید شد!",
+    "toastRejected": "درخواست رد شد!",
+    "updateFailed": "به‌روزرسانی ناموفق بود"
+  },
+  "EditListingPage": {
+    "loading": "در حال بارگذاری تنظیمات جلسه...",
+    "notFoundTitle": "آگهی پیدا نشد",
+    "notFoundDesc": "ممکن است آگهی حذف شده باشد یا مجوز مشاهده آن را نداشته باشید.",
+    "returnToRequests": "بازگشت به درخواست‌ها",
+    "back": "بازگشت به درخواست‌ها",
+    "badge": "مدیریت فضای کاری",
+    "heading": "ویرایش آگهی جلسه",
+    "subtitle": "اطلاعات ساختاری، محدودیت‌های حضور، ترجیحات یا وضعیت این پروفایل میزبان را تغییر دهید.",
+    "paramsTitle": "پارامترهای آگهی",
+    "paramsDesc": "پیکربندی دعوت عمومی جلسه خود را به‌روزرسانی کنید.",
+    "visibility": "وضعیت نمایش آگهی",
+    "active": "فعال",
+    "expired": "منقضی / متوقف",
+    "titleLabel": "عنوان جلسه",
+    "titlePlaceholder": "مثلاً مسابقه تنیس صبحگاهی",
+    "locationLabel": "مکان",
+    "locationPlaceholder": "مثلاً مجموعه ورزشی مرکز شهر، زمین ۳",
+    "sportsLabel": "برچسب‌های ورزش / فعالیت",
+    "sportsPlaceholder": "تنیس، بسکتبال، کاردیو (با ویرگول جدا کنید)",
+    "sportsHint": "مقادیر را با ویرگول جدا کنید تا بج‌های تمیز نمایش داده شوند.",
+    "exerciseTypeLabel": "نوع تمرین",
+    "exercise": {
+      "ONE_ON_ONE": "یک به یک",
+      "GROUP": "تمرین گروهی"
+    },
+    "genderLabel": "ترجیح جنسیت",
+    "gender": {
+      "ANY": "همه خوش آمدند",
+      "WOMEN_ONLY": "فقط زنان",
+      "MEN_ONLY": "فقط مردان"
+    },
+    "maxInvites": "حداکثر دعوت",
+    "goDutch": "تقسیم هزینه (گوداچ)",
+    "moreInfoLabel": "اطلاعات بیشتر",
+    "moreInfoPlaceholder": "جزئیات تجهیزات، سطح مهارت مورد انتظار یا مسیر را بنویسید...",
+    "cancel": "انصراف",
+    "saving": "در حال ذخیره...",
+    "save": "ذخیره تغییرات",
+    "updateSuccess": "آگهی با موفقیت به‌روزرسانی شد!",
+    "updateFailed": "به‌روزرسانی آگهی ناموفق بود.",
+    "requiredFields": "فیلدهای عنوان و مکان الزامی هستند."
+  },
+  "Navbar": {
+    "brand": "پایه",
+    "tagline": "شریک خود را پیدا کنید",
+    "explore": "کاوش",
+    "welcome": "خوش آمدید،",
+    "logout": "خروج",
+    "signIn": "ورود"
+  },
+  "Sidebar": {
+    "create": "ایجاد",
+    "requests": "درخواست‌ها",
+    "explore": "کاوش",
+    "messages": "پیام‌ها",
+    "profile": "پروفایل"
+  }
+}

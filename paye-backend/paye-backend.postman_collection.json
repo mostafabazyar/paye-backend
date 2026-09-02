@@ -1,0 +1,280 @@
+{
+  "info": {
+    "name": "Paye Backend API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for Paye backend API testing"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Auth: Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"+989120000001\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Auth: Verify",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"+989120000001\",\n  \"otp\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/verify",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "verify"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const response = pm.response.json();",
+              "if (response.token) {",
+              "  pm.environment.set('token', response.token);",
+              "}",
+              "if (response.user && response.user.id) {",
+              "  pm.environment.set('userId', response.user.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "Profile: Setup",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Sara Nazari\",\n  \"age\": 27,\n  \"gender\": \"female\",\n  \"bio\": \"Tennis partner available on weekends in Tehran.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/profile/setup",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "profile", "setup"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Profile: Create Listing",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sports\": [\"Football\"],\n  \"exerciseType\": \"ONE_ON_ONE\",\n  \"genderPreference\": \"ANY\",\n  \"title\": \"Football match request\",\n  \"location\": \"Laleh Park\",\n  \"maxInvites\": 4,\n  \"goDutch\": false,\n  \"moreInfo\": \"Looking for a football partner this weekend.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/profile/create",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "profile", "create"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Profile: Explore Listings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/profile/explore?sport=Football",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "profile", "explore"],
+          "query": [
+            {
+              "key": "sport",
+              "value": "Football"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Profile: Me",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/profile/me",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "profile", "me"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Request: Send",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"profileId\": 1\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/requests",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "requests"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Request: Received",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/requests/received",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "requests", "received"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Request: Profile Requests",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/requests/profile/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "requests", "profile", "1"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Request: Update Status",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"APPROVED\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/requests/1",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "requests", "1"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    }
+  ]
+}
