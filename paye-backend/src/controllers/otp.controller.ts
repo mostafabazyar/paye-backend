@@ -7,6 +7,34 @@ interface OTPQuery {
   phone?: string;
 }
 
+// Helper function to normalize phone number to 0 format
+const normalizePhone = (phone: string): string => {
+  // Remove spaces and special characters
+  let cleaned = phone.replace(/[\s\-\(\)]/g, '');
+  
+  // Remove + at the beginning
+  if (cleaned.startsWith('+')) {
+    cleaned = cleaned.substring(1);
+  }
+  
+  // If it starts with 98 (Iran country code), convert to 0
+  if (cleaned.startsWith('98')) {
+    cleaned = '0' + cleaned.substring(2);
+  }
+  
+  // If it's 10 digits and doesn't start with 0, add 0
+  if (cleaned.length === 10 && !cleaned.startsWith('0')) {
+    cleaned = '0' + cleaned;
+  }
+  
+  // If it starts with 0098, convert to 0
+  if (cleaned.startsWith('0098')) {
+    cleaned = '0' + cleaned.substring(4);
+  }
+  
+  return cleaned;
+};
+
 export const getOTPByPhone = async (req: Request<{}, {}, {}, OTPQuery>, res: Response) => {
   try {
     const { phone } = req.query;
@@ -18,9 +46,13 @@ export const getOTPByPhone = async (req: Request<{}, {}, {}, OTPQuery>, res: Res
       });
     }
 
+    // Normalize the phone number (convert to 0 format)
+    const normalizedPhone = normalizePhone(phone as string);
+    console.log(`📞 Searching OTP for: ${normalizedPhone} (original: ${phone})`);
+
     const otp = await prisma.otp.findFirst({
       where: {
-        phone: phone as string,
+        phone: normalizedPhone,
         used: false,
         expiresAt: {
           gt: new Date()

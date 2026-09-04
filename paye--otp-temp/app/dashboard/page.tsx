@@ -33,31 +33,34 @@ export default function DashboardPage() {
   }, [router]);
 
   // Fetch OTP function
-  const fetchOTP = useCallback(async () => {
-    if (!user) return;
+// Fetch OTP function
+const fetchOTP = useCallback(async () => {
+  if (!user) return;
+  
+  setLoading(true);
+  setError('');
+  
+  try {
+    console.log('📞 Fetching OTP for phone:', user.phone);
+    const response = await fetchOTPByPhone(user.phone);
     
-    setLoading(true);
-    setError('');
-    
-    try {
-      const response = await fetchOTPByPhone(user.phone);
-      
-      // Use the type guard for proper type checking
-      if (isSuccessResponse(response)) {
-        setOtpData(response.data);
-        setError('');
-      } else {
-        setOtpData(null);
-        setError(response.message || 'No OTP found for this phone number');
-      }
-    } catch (err) {
-      console.error('Error fetching OTP:', err);
-      setError('Failed to fetch OTP. Please try again.');
+    if (isSuccessResponse(response)) {
+      console.log('✅ OTP found:', response.data);
+      setOtpData(response.data);
+      setError('');
+    } else {
+      console.log('❌ No OTP found:', response.message);
       setOtpData(null);
-    } finally {
-      setLoading(false);
+      setError(response.message || 'No OTP found for this phone number');
     }
-  }, [user]);
+  } catch (err) {
+    console.error('Error fetching OTP:', err);
+    setError('Failed to fetch OTP. Please try again.');
+    setOtpData(null);
+  } finally {
+    setLoading(false);
+  }
+}, [user]);
 
   // Fetch all OTPs function
 //   const fetchAllOTPs = useCallback(async () => {

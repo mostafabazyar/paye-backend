@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { findUser } from '@/data/users';
+import { findUser, normalizePhone } from '@/data/users';
 import styles from '@/styles/Login.module.css';
 
 export default function LoginPage() {
@@ -17,11 +17,11 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    // Format phone number
-    const formattedPhone = phone.startsWith('+') ? phone : `+${phone}`;
+    // Normalize the phone number
+    const normalizedPhone = normalizePhone(phone);
     
-    // Check credentials
-    const user = findUser(formattedPhone, password);
+    // Check credentials with the normalized phone
+    const user = findUser(normalizedPhone, password);
     
     if (!user) {
       setError('Invalid phone number or password');
@@ -51,10 +51,15 @@ export default function LoginPage() {
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="+1234567890"
+              placeholder="09125239708"
               className={styles.input}
               required
             />
+            <small className={styles.hint}>
+              Enter phone number starting with 0 (e.g., 09125239708)
+              <br />
+              You can also enter with +98 or 98 and it will be converted
+            </small>
           </div>
 
           <div className={styles.inputGroup}>
@@ -80,11 +85,11 @@ export default function LoginPage() {
           </button>
 
           <div className={styles.demoInfo}>
-            <p>Demo Users:</p>
+            <p>Demo Users (with 0 format):</p>
             <ul className={styles.demoList}>
-              <li>📱 +1234567890 | 🔑 user123</li>
-              <li>📱 +0987654321 | 🔑 pass456</li>
-              <li>📱 +1122334455 | 🔑 demo789</li>
+              <li>📱 09125239708 | 🔑 user123</li>
+              <li>📱 09087654321 | 🔑 pass456</li>
+              <li>📱 09112233445 | 🔑 demo789</li>
             </ul>
           </div>
         </form>

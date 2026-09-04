@@ -31,7 +31,7 @@ api.interceptors.response.use(
 
 export const fetchOTPByPhone = async (phone: string): Promise<ApiResponse<OTP>> => {
   try {
-    const response = await api.get<ApiResponse<OTP>>('/api/otp/view', {
+    const response = await api.get<ApiResponse<OTP>>('/api/auth/otp/view', {
       params: { phone }
     });
     return response.data;
@@ -47,7 +47,7 @@ export const fetchOTPByPhone = async (phone: string): Promise<ApiResponse<OTP>> 
 
 export const fetchAllOTPs = async (): Promise<ApiResponse<OTP[]>> => {
   try {
-    const response = await api.get<ApiResponse<OTP[]>>('/api/otp/all');
+    const response = await api.get<ApiResponse<OTP[]>>('/api/auth/otp/all');
     return response.data;
   } catch (error) {
     console.error('Error fetching all OTPs:', error);
