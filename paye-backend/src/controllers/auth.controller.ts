@@ -1,10 +1,37 @@
-// src/controllers/auth.controller.ts
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
+
+// Helper function to normalize phone number to 0 format
+const normalizePhone = (phone: string): string => {
+  // Remove spaces and special characters
+  let cleaned = phone.replace(/[\s\-\(\)]/g, '');
+  
+  // Remove + at the beginning
+  if (cleaned.startsWith('+')) {
+    cleaned = cleaned.substring(1);
+  }
+  
+  // If it starts with 98 (Iran country code), convert to 0
+  if (cleaned.startsWith('98')) {
+    cleaned = '0' + cleaned.substring(2);
+  }
+  
+  // If it starts with 0098, convert to 0
+  if (cleaned.startsWith('0098')) {
+    cleaned = '0' + cleaned.substring(4);
+  }
+  
+  // If it's 10 digits and doesn't start with 0, add 0
+  if (cleaned.length === 10 && !cleaned.startsWith('0')) {
+    cleaned = '0' + cleaned;
+  }
+  
+  return cleaned;
+};
 
 // Generate 6-digit OTP
 const generateOTP = (): string => {
@@ -22,9 +49,27 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Phone number is required' });
     }
 
-    // Validate phone format (basic validation)
-    if (!/^\+?[1-9]\d{1,14}$/.test(phone)) {
-      return res.status(400).json({ success: false, message: 'Invalid phone number format' });
+    // Normalize the phone number (convert to 0 format)
+    const normalizedPhone = normalizePhone(phone);
+    console.log(`📱 Login attempt for: ${normalizedPhone} (original: ${phone})`);
+
+    // Validate phone format - accepts 0 at the beginning
+    // Format: starts with 0, followed by 10 digits (total 11 digits)
+    // Or with +98 format
+    const phoneRegex = /^(0[0-9]{10}|\+?98[0-9]{10}|[0-9]{10,11})$/;
+    if (!phoneRegex.test(normalizedPhone) && !phoneRegex.test(phone)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid phone number format. Please enter a valid phone number.' 
+      });
+    }
+
+    // Additional validation for Iranian phone numbers
+    if (!/^0[0-9]{10}$/.test(normalizedPhone)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid phone number. Must start with 0 and have 11 digits (e.g., 09125239708)' 
+      });
     }
 
     // Generate OTP
@@ -36,34 +81,31 @@ export const login = async (req: Request, res: Response) => {
 
     // Delete any existing OTPs for this phone (to avoid duplicates)
     await prisma.otp.deleteMany({
-      where: { phone }
+      where: { phone: normalizedPhone }
     });
 
-    // Save OTP to database
+    // Save OTP to database with normalized phone
     await prisma.otp.create({
       data: {
-        phone,
+        phone: normalizedPhone,
         otp,
         expiresAt,
         used: false
       }
     });
 
-    // ←←← CONSOLE LOG FOR DEVELOPMENT
+    // Console log for development
     console.log('\n🔐 ==================== NEW OTP ====================');
-    console.log(`📱 Phone : ${phone}`);
+    console.log(`📱 Phone : ${normalizedPhone}`);
     console.log(`🔑 OTP   : ${otp}`);
     console.log(`⏰ Expires in: ${OTP_EXPIRY_MINUTES} minutes`);
     console.log('==================================================\n');
 
-    // In real production, send OTP via SMS (Twilio, etc.)
-    // For now, we just log it
-
     res.json({ 
       success: true, 
       message: "OTP sent successfully. Check console for OTP (development mode).", 
-      phone,
-      expiresIn: OTP_EXPIRY_MINUTES * 60 // seconds
+      phone: normalizedPhone,
+      expiresIn: OTP_EXPIRY_MINUTES * 60
     });
   } catch (error) {
     console.error(error);
@@ -79,20 +121,22 @@ export const verify = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Phone and OTP are required' });
     }
 
-    console.log(`🔍 Verifying OTP for ${phone} → ${otp}`);
+    // Normalize the phone number
+    const normalizedPhone = normalizePhone(phone);
+    console.log(`🔍 Verifying OTP for ${normalizedPhone} → ${otp}`);
 
     // Find valid OTP in database
     const otpRecord = await prisma.otp.findFirst({
       where: {
-        phone,
+        phone: normalizedPhone,
         otp,
         used: false,
         expiresAt: {
-          gt: new Date() // OTP not expired
+          gt: new Date()
         }
       },
       orderBy: {
-        createdAt: 'desc' // Get the most recent OTP if multiple exist
+        createdAt: 'desc'
       }
     });
 
@@ -101,7 +145,7 @@ export const verify = async (req: Request, res: Response) => {
       // Check if there's an expired OTP to give a better error message
       const expiredOtp = await prisma.otp.findFirst({
         where: {
-          phone,
+          phone: normalizedPhone,
           otp,
           used: false,
           expiresAt: {
@@ -131,7 +175,7 @@ export const verify = async (req: Request, res: Response) => {
 
     // Find or create user
     let user = await prisma.user.findUnique({ 
-      where: { phone } 
+      where: { phone: normalizedPhone } 
     });
 
     const isNewUser = !user;
@@ -139,7 +183,7 @@ export const verify = async (req: Request, res: Response) => {
     if (!user) {
       user = await prisma.user.create({
         data: {
-          phone,
+          phone: normalizedPhone,
           isVerified: true,
         }
       });
@@ -194,6 +238,9 @@ export const resendOTP = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Phone number is required' });
     }
 
+    // Normalize the phone number
+    const normalizedPhone = normalizePhone(phone);
+
     // Generate new OTP
     const otp = generateOTP();
     const expiresAt = new Date();
@@ -201,13 +248,13 @@ export const resendOTP = async (req: Request, res: Response) => {
 
     // Delete old OTPs
     await prisma.otp.deleteMany({
-      where: { phone }
+      where: { phone: normalizedPhone }
     });
 
     // Save new OTP
     await prisma.otp.create({
       data: {
-        phone,
+        phone: normalizedPhone,
         otp,
         expiresAt,
         used: false
@@ -215,7 +262,7 @@ export const resendOTP = async (req: Request, res: Response) => {
     });
 
     console.log('\n🔄 ==================== RESENT OTP ====================');
-    console.log(`📱 Phone : ${phone}`);
+    console.log(`📱 Phone : ${normalizedPhone}`);
     console.log(`🔑 OTP   : ${otp}`);
     console.log('==================================================\n');
 
