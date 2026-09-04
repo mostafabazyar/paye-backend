@@ -51,12 +51,12 @@ export default function LoginPage() {
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="09125239708"
+              placeholder="09120000000"
               className={styles.input}
               required
             />
             <small className={styles.hint}>
-              Enter phone number starting with 0 (e.g., 09125239708)
+              Enter phone number starting with 0
               <br />
               You can also enter with +98 or 98 and it will be converted
             </small>
@@ -84,14 +84,6 @@ export default function LoginPage() {
             {loading ? 'Logging in...' : 'Login'}
           </button>
 
-          <div className={styles.demoInfo}>
-            <p>Demo Users (with 0 format):</p>
-            <ul className={styles.demoList}>
-              <li>📱 09125239708 | 🔑 user123</li>
-              <li>📱 09087654321 | 🔑 pass456</li>
-              <li>📱 09112233445 | 🔑 demo789</li>
-            </ul>
-          </div>
         </form>
       </div>
     </div>
