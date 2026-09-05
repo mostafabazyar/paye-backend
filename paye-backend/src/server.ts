@@ -39,26 +39,26 @@ const io = new Server(server, {
   },
 });
 
-// Express CORS middleware
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log(`Blocked CORS request from: ${origin}`);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    exposedHeaders: ["Content-Length", "X-Kuma-Revision"]
-  })
-);
+// // Express CORS middleware
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       if (!origin) return callback(null, true);
+//       if (allowedOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         console.log(`Blocked CORS request from: ${origin}`);
+//         callback(new Error('Not allowed by CORS'));
+//       }
+//     },
+//     credentials: true,
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+//     exposedHeaders: ["Content-Length", "X-Kuma-Revision"]
+//   })
+// );
 
-app.options('*', cors());
+// app.options('*', cors());
 app.use(express.json());
 
 // Routes
