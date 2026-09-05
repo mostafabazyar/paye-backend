@@ -17,15 +17,18 @@ const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
-// Define allowed origins
+// Define allowed origins - ADD YOUR OTP VIEWER URL
 const allowedOrigins = [
   "http://localhost:3000",
+  "http://localhost:3001",  // OTP Viewer
   "http://localhost:5000",
   "http://78.31.235.12",
   "http://78.31.235.12:3000",
+  "http://78.31.235.12:3001",  // OTP Viewer
   "http://78.31.235.12:5000",
   "https://78.31.235.12",
   "http://10.10.10.144:3000",
+  "http://10.10.10.144:3001",  // OTP Viewer
   "http://10.10.10.144:5000"
 ];
 
@@ -39,26 +42,31 @@ const io = new Server(server, {
   },
 });
 
-// // Express CORS middleware
-// app.use(
-//   cors({
-//     origin: function (origin, callback) {
-//       if (!origin) return callback(null, true);
-//       if (allowedOrigins.includes(origin)) {
-//         callback(null, true);
-//       } else {
-//         console.log(`Blocked CORS request from: ${origin}`);
-//         callback(new Error('Not allowed by CORS'));
-//       }
-//     },
-//     credentials: true,
-//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-//     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-//     exposedHeaders: ["Content-Length", "X-Kuma-Revision"]
-//   })
-// );
+// ✅ UNCOMMENT THIS - Express CORS middleware
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      // Check if the origin is allowed
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log(`❌ Blocked CORS request from: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["Content-Length", "X-Kuma-Revision"]
+  })
+);
 
-// app.options('*', cors());
+// Handle preflight requests
+app.options('*', cors());
+
 app.use(express.json());
 
 // Routes
