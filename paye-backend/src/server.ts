@@ -11,6 +11,9 @@ import requestRoutes from "./routes/requestRoutes";
 import chatRoutes from "./routes/chat.routes";
 import { setupChatSocket } from "./socket/chat.socket";
 
+//Admin Routes
+import adminRoutes from "./routes/admin.routes";
+
 dotenv.config();
 
 const app = express();
@@ -75,6 +78,8 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/chat", chatRoutes);
+// Admin Routes
+app.use("/api/admin", adminRoutes);
 
 app.get("/health", (req, res) => {
   res.json({ status: "OK", message: "Paye Backend Running" });

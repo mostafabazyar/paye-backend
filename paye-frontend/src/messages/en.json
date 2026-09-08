@@ -107,45 +107,56 @@
     "and": "and",
     "privacy": "Privacy Policy"
   },
-  "ProfileSetupPage": {
-    "title": "Complete Your Profile",
-    "nameLabel": "Full Name",
-    "namePlaceholder": "John Doe",
-    "ageLabel": "Age",
-    "genderLabel": "Gender",
-    "genderPlaceholder": "Select gender",
-    "gender": {
-      "male": "Male",
-      "female": "Female",
-      "other": "Other"
-    },
-    "interestedInLabel": "Interested in",
-    "interestedInPlaceholder": "Who are you interested in?",
-    "interestedIn": {
-      "men": "Men",
-      "women": "Women",
-      "everyone": "Everyone"
-    },
-    "sportsLabel": "Interested sports",
-    "sessionTypesLabel": "Preferred session style",
-    "sessionTypes": {
-      "oneOnOne": "1:1 Session",
-      "oneOnMany": "Small Group",
-      "manyOnMany": "Open Session"
-    },
-    "bioLabel": "Bio (Optional)",
-    "bioPlaceholder": "Tell others about yourself...",
-    "saving": "Saving Profile...",
-    "submit": "Continue to Dashboard",
-    "success": "Profile Completed!",
-    "errorTitle": "Error",
-    "errorFallback": "Something went wrong",
-    "errors": {
-      "nameMin": "Name must be at least 2 characters",
-      "ageMin": "Must be at least 16",
-      "ageMax": "Must be 70 or younger"
-    }
+"ProfileSetupPage": {
+  "title": "Complete Your Profile",
+  "nameLabel": "Full Name",
+  "namePlaceholder": "John Doe",
+
+  "birthDateLabel": "Date of Birth",
+  "birthYearPlaceholder": "Year",
+  "birthMonthPlaceholder": "Month",
+  "birthDayPlaceholder": "Day",
+
+  "genderLabel": "Gender",
+  "genderPlaceholder": "Select gender",
+  "gender": {
+    "male": "Male",
+    "female": "Female",
+    "other": "Other"
   },
+
+  "interestedInLabel": "Interested in",
+  "interestedInPlaceholder": "Who are you interested in?",
+  "interestedIn": {
+    "men": "Men",
+    "women": "Women",
+    "everyone": "Everyone"
+  },
+
+  "sportsLabel": "Interested sports",
+  "sessionTypesLabel": "Preferred session style",
+  "sessionTypes": {
+    "oneOnOne": "1:1 Session",
+    "oneOnMany": "Small Group",
+    "manyOnMany": "Open Session"
+  },
+
+  "bioLabel": "Bio (Optional)",
+  "bioPlaceholder": "Tell others about yourself...",
+  "saving": "Saving Profile...",
+  "submit": "Continue to Dashboard",
+  "success": "Profile Completed!",
+  "errorTitle": "Error",
+  "errorFallback": "Something went wrong",
+
+  "errors": {
+    "nameMin": "Name must be at least 2 characters",
+    "birthDateRequired": "Date of birth is required",
+    "birthDateInvalid": "Please select a valid date of birth",
+    "ageMin": "Must be at least 16",
+    "ageMax": "Must be 70 or younger"
+  }
+},
   "VerifyPage": {
     "title": "Enter OTP",
     "sentTo": "Sent to",
@@ -252,6 +263,10 @@
     "errorFallback": "Failed to create listing"
   },
   "ExplorePage": {
+    "pending": "Request Pending", 
+    "joined": "Joined", 
+    "rejected": "Rejected", 
+    "closed": "Closed",
     "badge": "Explore",
     "heading": "Find sessions that feel personal, current, and easy to join.",
     "subtitle": "Browse active listings with a stronger visual hierarchy, exercise-specific cover art, and a clear event time.",
@@ -452,6 +467,8 @@
     "exerciseTypeLabel": "Exercise Type",
     "exercise": {
       "ONE_ON_ONE": "One on One",
+      "ONE_ON_MANY": "One on Many",
+      "MANY_ON_MANY": "Many on Many",
       "GROUP": "Group Training"
     },
     "genderLabel": "Gender Preference",
@@ -469,7 +486,8 @@
     "save": "Save Changes",
     "updateSuccess": "Listing updated successfully!",
     "updateFailed": "Failed to update listing profile.",
-    "requiredFields": "Title and Location fields are required."
+    "requiredFields": "Title and Location fields are required.",
+    "invalidMaxInvites": "Maximum invites must be at least 1"
   },
   "Navbar": {
     "brand": "Paye",

@@ -27,6 +27,16 @@ import {
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 
+type ExerciseType =
+  | 'ONE_ON_ONE'
+  | 'ONE_ON_MANY'
+  | 'MANY_ON_MANY';
+
+type GenderPreference =
+  | 'ANY'
+  | 'MEN_ONLY'
+  | 'WOMEN_ONLY';
+
 type RequestProfile = {
   id: number | string;
   title: string;
@@ -45,8 +55,8 @@ type RequestProfile = {
 type UpdateProfilePayload = {
   title: string;
   location: string;
-  exerciseType: string;
-  genderPreference: string;
+  exerciseType: ExerciseType;
+  genderPreference: GenderPreference;
   maxInvites: number;
   goDutch: boolean;
   moreInfo?: string;
@@ -65,13 +75,16 @@ export default function EditListingPage() {
 
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
-  const [exerciseType, setExerciseType] = useState('ONE_ON_ONE');
-  const [genderPreference, setGenderPreference] = useState('ANY');
+  const [exerciseType, setExerciseType] =
+  useState<ExerciseType>('ONE_ON_ONE');
+  const [genderPreference, setGenderPreference] =
+  useState<GenderPreference>('ANY');
   const [maxInvites, setMaxInvites] = useState(1);
   const [goDutch, setGoDutch] = useState(false);
   const [moreInfo, setMoreInfo] = useState('');
   const [sportsInput, setSportsInput] = useState('');
   const [isActive, setIsActive] = useState(true);
+  
 
   const { data: profile, isLoading, error } = useQuery<{
     success: boolean;
@@ -92,8 +105,31 @@ export default function EditListingPage() {
       if (currentListing) {
         setTitle(currentListing.title || '');
         setLocation(currentListing.location || '');
-        setExerciseType(currentListing.exerciseType || 'ONE_ON_ONE');
-        setGenderPreference(currentListing.genderPreference || 'ANY');
+        const validExerciseTypes: ExerciseType[] = [
+          'ONE_ON_ONE',
+          'ONE_ON_MANY',
+          'MANY_ON_MANY',
+        ];
+        const validGenderPreferences: GenderPreference[] = [
+          'ANY',
+          'WOMEN_ONLY',
+          'MEN_ONLY',
+        ];
+        const loadedExerciseType = currentListing.exerciseType as ExerciseType;
+        const loadedGenderPreference =
+          currentListing.genderPreference as GenderPreference;
+
+        setExerciseType(
+          validExerciseTypes.includes(loadedExerciseType)
+            ? loadedExerciseType
+            : 'ONE_ON_ONE'
+        );
+
+        setGenderPreference(
+          validGenderPreferences.includes(loadedGenderPreference)
+            ? loadedGenderPreference
+            : 'ANY'
+        );
         setMaxInvites(currentListing.maxInvites || 1);
         setGoDutch(!!currentListing.goDutch);
         setMoreInfo(currentListing.moreInfo || '');
@@ -144,6 +180,11 @@ export default function EditListingPage() {
       return;
     }
 
+    if (maxInvites < 1) {
+      toast.error(t('invalidMaxInvites'));
+      return;
+    }
+
     const sportsArray = sportsInput
       .split(',')
       .map((item) => item.trim())
@@ -166,6 +207,24 @@ export default function EditListingPage() {
 
     updateMutation.mutate(updatePayload);
   };
+
+    const isExerciseType = (value: string): value is ExerciseType => {
+      return [
+        'ONE_ON_ONE',
+        'ONE_ON_MANY',
+        'MANY_ON_MANY',
+      ].includes(value);
+    };
+
+    const isGenderPreference = (
+      value: string
+    ): value is GenderPreference => {
+      return [
+        'ANY',
+        'WOMEN_ONLY',
+        'MEN_ONLY',
+      ].includes(value);
+    };
 
   if (isLoading) {
     return (
@@ -338,11 +397,16 @@ export default function EditListingPage() {
                   </label>
                   <select
                     value={exerciseType}
-                    onChange={(e) => setExerciseType(e.target.value)}
+                    onChange={(e) => {
+                      if (isExerciseType(e.target.value)) {
+                        setExerciseType(e.target.value);
+                      }
+                    }}
                     className="w-full h-11 px-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
                   >
                     <option value="ONE_ON_ONE">{t('exercise.ONE_ON_ONE')}</option>
-                    <option value="GROUP">{t('exercise.GROUP')}</option>
+                    <option value="ONE_ON_MANY">{t('exercise.ONE_ON_MANY')}</option>
+                    <option value="MANY_ON_MANY">{t('exercise.MANY_ON_MANY')}</option>
                   </select>
                 </div>
                 <div className="space-y-2">
@@ -351,7 +415,11 @@ export default function EditListingPage() {
                   </label>
                   <select
                     value={genderPreference}
-                    onChange={(e) => setGenderPreference(e.target.value)}
+                    onChange={(e) => {
+                      if (isGenderPreference(e.target.value)) {
+                        setGenderPreference(e.target.value);
+                      }
+                    }}
                     className="w-full h-11 px-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
                   >
                     <option value="ANY">{t('gender.ANY')}</option>
@@ -372,7 +440,12 @@ export default function EditListingPage() {
                     type="number"
                     min="1"
                     value={maxInvites}
-                    onChange={(e) => setMaxInvites(Number(e.target.value))}
+                    onChange={(e) => {
+                      const value = Number(e.target.value);
+                      setMaxInvites(
+                        Number.isInteger(value) && value >= 1 ? value : 1
+                      );
+                    }}
                     className="w-16 h-8 text-center rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-slate-900"
                     dir="ltr"
                   />

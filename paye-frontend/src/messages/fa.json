@@ -107,45 +107,56 @@
     "and": "و",
     "privacy": "سیاست حریم خصوصی"
   },
-  "ProfileSetupPage": {
-    "title": "تکمیل پروفایل",
-    "nameLabel": "نام کامل",
-    "namePlaceholder": "علی رضایی",
-    "ageLabel": "سن",
-    "genderLabel": "جنسیت",
-    "genderPlaceholder": "جنسیت را انتخاب کنید",
-    "gender": {
-      "male": "مرد",
-      "female": "زن",
-      "other": "سایر"
-    },
-    "interestedInLabel": "علاقه‌مند به",
-    "interestedInPlaceholder": "به چه کسانی علاقه‌مندید؟",
-    "interestedIn": {
-      "men": "مردان",
-      "women": "زنان",
-      "everyone": "همه"
-    },
-    "sportsLabel": "ورزش‌های مورد علاقه",
-    "sessionTypesLabel": "سبک جلسه مورد علاقه",
-    "sessionTypes": {
-      "oneOnOne": "جلسه ۱ به ۱",
-      "oneOnMany": "گروه کوچک",
-      "manyOnMany": "جلسه باز"
-    },
-    "bioLabel": "بیو (اختیاری)",
-    "bioPlaceholder": "درباره خودتان بنویسید...",
-    "saving": "در حال ذخیره پروفایل...",
-    "submit": "ادامه به داشبورد",
-    "success": "پروفایل با موفقیت تکمیل شد!",
-    "errorTitle": "خطا",
-    "errorFallback": "مشکلی پیش آمد",
-    "errors": {
-      "nameMin": "نام باید حداقل ۲ کاراکتر باشد",
-      "ageMin": "حداقل سن ۱۶ سال است",
-      "ageMax": "حداکثر سن ۷۰ سال است"
-    }
+"ProfileSetupPage": {
+  "title": "تکمیل پروفایل",
+  "nameLabel": "نام کامل",
+  "namePlaceholder": "علی رضایی",
+
+  "birthDateLabel": "تاریخ تولد",
+  "birthYearPlaceholder": "سال",
+  "birthMonthPlaceholder": "ماه",
+  "birthDayPlaceholder": "روز",
+
+  "genderLabel": "جنسیت",
+  "genderPlaceholder": "جنسیت را انتخاب کنید",
+  "gender": {
+    "male": "مرد",
+    "female": "زن",
+    "other": "سایر"
   },
+
+  "interestedInLabel": "علاقه‌مند به",
+  "interestedInPlaceholder": "به چه کسانی علاقه‌مندید؟",
+  "interestedIn": {
+    "men": "مردان",
+    "women": "زنان",
+    "everyone": "همه"
+  },
+
+  "sportsLabel": "ورزش‌های مورد علاقه",
+  "sessionTypesLabel": "سبک جلسه مورد علاقه",
+  "sessionTypes": {
+    "oneOnOne": "جلسه ۱ به ۱",
+    "oneOnMany": "گروه کوچک",
+    "manyOnMany": "جلسه باز"
+  },
+
+  "bioLabel": "بیو (اختیاری)",
+  "bioPlaceholder": "درباره خودتان بنویسید...",
+  "saving": "در حال ذخیره پروفایل...",
+  "submit": "ادامه به داشبورد",
+  "success": "پروفایل با موفقیت تکمیل شد!",
+  "errorTitle": "خطا",
+  "errorFallback": "مشکلی پیش آمد",
+
+  "errors": {
+    "nameMin": "نام باید حداقل ۲ کاراکتر باشد",
+    "birthDateRequired": "تاریخ تولد الزامی است",
+    "birthDateInvalid": "لطفاً یک تاریخ تولد معتبر انتخاب کنید",
+    "ageMin": "حداقل سن ۱۶ سال است",
+    "ageMax": "حداکثر سن ۷۰ سال است"
+  }
+},
   "VerifyPage": {
     "title": "کد تأیید را وارد کنید",
     "sentTo": "ارسال شده به",
@@ -252,6 +263,10 @@
     "errorFallback": "ایجاد آگهی ناموفق بود"
   },
   "ExplorePage": {
+    "pending": "در انتظار تأیید", 
+    "joined": "عضو شدید", 
+    "rejected": "رد شده", 
+    "closed": "بسته شده",
     "badge": "کاوش",
     "heading": "جلساتی پیدا کنید که شخصی، به‌روز و آسان برای پیوستن باشند.",
     "subtitle": "آگهی‌های فعال را با سلسله‌مراتب بصری قوی‌تر، کاور اختصاصی هر ورزش و زمان رویداد واضح مرور کنید.",
@@ -451,6 +466,8 @@
     "exerciseTypeLabel": "نوع تمرین",
     "exercise": {
       "ONE_ON_ONE": "یک به یک",
+      "ONE_ON_MANY": "یک به چند",
+      "MANY_ON_MANY": "چند به چند",
       "GROUP": "تمرین گروهی"
     },
     "genderLabel": "ترجیح جنسیت",
@@ -468,7 +485,8 @@
     "save": "ذخیره تغییرات",
     "updateSuccess": "آگهی با موفقیت به‌روزرسانی شد!",
     "updateFailed": "به‌روزرسانی آگهی ناموفق بود.",
-    "requiredFields": "فیلدهای عنوان و مکان الزامی هستند."
+    "requiredFields": "فیلدهای عنوان و مکان الزامی هستند.",
+    "invalidMaxInvites": "درخواست ها باید حداقل 1 باشند"
   },
   "Navbar": {
     "brand": "پایه",

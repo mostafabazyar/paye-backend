@@ -205,7 +205,7 @@ export const verify = async (req: Request, res: Response) => {
       id: user.id,
       phone: user.phone,
       name: user.name || null,
-      age: user.age || null,
+      birthDate: user.birthDate || null,
       gender: user.gender || null,
       interestedIn: user.interestedIn || 'EVERYONE',
       preferredSports: user.preferredSports ? user.preferredSports.split(',').filter(Boolean) : [],

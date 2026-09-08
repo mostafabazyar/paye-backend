@@ -65,7 +65,10 @@ export default function ChatPage() {
 
     const socket = createSocket(token);
     socketRef.current = socket;
-    socket.emit('join_session', sessionId);
+
+    socket.on('connect', () => {
+      socket.emit('join_session', sessionId);
+    });
 
     socket.on('new_message', (msg: ChatMessage) => {
       if (msg.sessionId !== sessionId) return;
@@ -97,11 +100,15 @@ export default function ChatPage() {
   }, [messages, isTyping]);
 
   const sendMessage = () => {
-    if (!text.trim() || !sessionId || !socketRef.current) return;
-    socketRef.current.emit('send_message', {
+    const socket = socketRef.current;
+
+    if (!text.trim() || !sessionId || !socket?.connected) return;
+
+    socket.emit('send_message', {
       sessionId,
       text: text.trim(),
     });
+
     setText('');
     setReplyTo(null);
   };

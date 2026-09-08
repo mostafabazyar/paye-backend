@@ -39,10 +39,13 @@ type ExploreListing = {
   user?: { name?: string };
   location?: string;
   sports?: string[] | string;
+  tags?: string[] | string;
   moreInfo?: string;
   exerciseType?: 'ONE_ON_ONE' | 'ONE_ON_MANY' | 'MANY_ON_MANY';
   genderPreference?: 'ANY' | 'MALE' | 'FEMALE';
   maxInvites?: number;
+  isActive?: boolean;
+  requestStatus?: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
   createdAt?: string;
   updatedAt?: string;
   eventTime?: string;
@@ -93,8 +96,12 @@ function formatTimeLabel(
   }
 
   const date = new Date(raw);
+
   if (Number.isNaN(date.getTime())) {
-    return { primary: raw, secondary: t('scheduleTime') };
+    return {
+      primary: raw,
+      secondary: t('scheduleTime'),
+    };
   }
 
   const dateLocale = locale === 'fa' ? 'fa-IR' : 'en-US';
@@ -104,6 +111,7 @@ function formatTimeLabel(
       hour: 'numeric',
       minute: '2-digit',
     }).format(date),
+
     secondary: new Intl.DateTimeFormat(dateLocale, {
       weekday: 'short',
       month: 'short',
@@ -117,12 +125,16 @@ function toDataUri(svg: string) {
 }
 
 function getPrimarySport(listing: ExploreListing) {
-  if (Array.isArray(listing.sports)) {
-    return listing.sports[0] || '';
+  const source = listing.tags ?? listing.sports;
+
+  if (Array.isArray(source)) {
+    return source[0] || '';
   }
-  if (typeof listing.sports === 'string') {
-    return listing.sports;
+
+  if (typeof source === 'string') {
+    return source;
   }
+
   return '';
 }
 
@@ -293,11 +305,20 @@ function getCardArt(listing: ExploreListing): CardArt {
 async function reverseGeocode(lat: number, lon: number) {
   const response = await fetch(
     `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`,
-    { headers: { Accept: 'application/json' } }
+    {
+      headers: {
+        Accept: 'application/json',
+      },
+    }
   );
-  if (!response.ok) throw new Error('Unable to resolve location');
+
+  if (!response.ok) {
+    throw new Error('Unable to resolve location');
+  }
+
   const data = await response.json();
   const address = data?.address || {};
+
   return (
     address.city ||
     address.town ||
@@ -314,11 +335,17 @@ export default function ExplorePage() {
   const isRtl = locale === 'fa';
 
   const [joining, setJoining] = useState<string | null>(null);
-  const [draftFilters, setDraftFilters] = useState<FilterState>(defaultFilters);
-  const [activeFilters, setActiveFilters] = useState<FilterState>(defaultFilters);
+  const [draftFilters, setDraftFilters] =
+    useState<FilterState>(defaultFilters);
+  const [activeFilters, setActiveFilters] =
+    useState<FilterState>(defaultFilters);
   const [locating, setLocating] = useState(false);
 
-  const { data: profiles = [], isLoading, refetch } = useQuery({
+  const {
+    data: profiles = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: [
       'profiles',
       'explore',
@@ -330,20 +357,41 @@ export default function ExplorePage() {
     ],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (activeFilters.sport) params.append('sport', activeFilters.sport);
-      if (activeFilters.exerciseType !== 'ALL')
+
+      if (activeFilters.sport) {
+        params.append('sport', activeFilters.sport);
+      }
+
+      if (activeFilters.exerciseType !== 'ALL') {
         params.append('exerciseType', activeFilters.exerciseType);
-      if (activeFilters.genderPreference !== 'ALL')
-        params.append('genderPreference', activeFilters.genderPreference);
-      if (activeFilters.location)
+      }
+
+      if (activeFilters.genderPreference !== 'ALL') {
+        params.append(
+          'genderPreference',
+          activeFilters.genderPreference
+        );
+      }
+
+      if (activeFilters.location) {
         params.append('location', activeFilters.location);
-      if (activeFilters.sortBy) params.append('sortBy', activeFilters.sortBy);
-      const res = await apiClient.get(`/profile/explore?${params.toString()}`);
+      }
+
+      if (activeFilters.sortBy) {
+        params.append('sortBy', activeFilters.sortBy);
+      }
+
+      const res = await apiClient.get(
+        `/profile/explore?${params.toString()}`
+      );
+
       return res?.profiles || [];
     },
   });
 
-  const handleApplyFilters = (event: FormEvent<HTMLFormElement>) => {
+  const handleApplyFilters = (
+    event: FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
     setActiveFilters(draftFilters);
   };
@@ -358,21 +406,33 @@ export default function ExplorePage() {
       toast.error(t('locationUnavailable'));
       return;
     }
+
     setLocating(true);
+
     try {
       const position = await new Promise<GeolocationPosition>(
         (resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-          });
+          navigator.geolocation.getCurrentPosition(
+            resolve,
+            reject,
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+            }
+          );
         }
       );
+
       const locationName = await reverseGeocode(
         position.coords.latitude,
         position.coords.longitude
       );
-      setDraftFilters((current) => ({ ...current, location: locationName }));
+
+      setDraftFilters((current) => ({
+        ...current,
+        location: locationName,
+      }));
+
       toast.success(t('locationAdded'));
     } catch {
       toast.error(t('locationFailed'));
@@ -383,14 +443,19 @@ export default function ExplorePage() {
 
   const handleJoin = async (profileId: number) => {
     setJoining(String(profileId));
+
     try {
       await apiClient.post('/requests', { profileId });
+
       toast.success(t('requestSent'));
-      refetch();
+      await refetch();
     } catch (err: unknown) {
-      toast.error(
-        (err as { message?: string }).message || t('requestFailed')
-      );
+      const errorMessage =
+        (err as any)?.response?.data?.error ||
+        (err as any)?.message ||
+        t('requestFailed');
+
+      toast.error(errorMessage);
     } finally {
       setJoining(null);
     }
@@ -407,26 +472,38 @@ export default function ExplorePage() {
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
               {t('badge')}
             </p>
+
             <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
               {t('heading')}
             </h1>
+
             <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
               {t('subtitle')}
             </p>
           </div>
 
           <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-            <p className="text-sm font-medium text-slate-900">{t('filters')}</p>
-            <form onSubmit={handleApplyFilters} className="mt-4 space-y-4">
+            <p className="text-sm font-medium text-slate-900">
+              {t('filters')}
+            </p>
+
+            <form
+              onSubmit={handleApplyFilters}
+              className="mt-4 space-y-4"
+            >
               <div className="grid gap-3 sm:grid-cols-2">
                 <Input
                   placeholder={t('sportPlaceholder')}
                   value={draftFilters.sport}
                   onChange={(e) =>
-                    setDraftFilters((c) => ({ ...c, sport: e.target.value }))
+                    setDraftFilters((c) => ({
+                      ...c,
+                      sport: e.target.value,
+                    }))
                   }
                   className="rounded-[1rem] border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:ring-slate-400"
                 />
+
                 <Input
                   placeholder={t('locationPlaceholder')}
                   value={draftFilters.location}
@@ -446,21 +523,30 @@ export default function ExplorePage() {
                   onValueChange={(value) =>
                     setDraftFilters((c) => ({
                       ...c,
-                      exerciseType: value as FilterState['exerciseType'],
+                      exerciseType:
+                        value as FilterState['exerciseType'],
                     }))
                   }
                 >
                   <SelectTrigger className="w-full rounded-[1rem] border-slate-200 bg-slate-50">
-                    <SelectValue placeholder={t('allSessionTypes')} />
+                    <SelectValue
+                      placeholder={t('allSessionTypes')}
+                    />
                   </SelectTrigger>
+
                   <SelectContent>
-                    <SelectItem value="ALL">{t('allSessionTypes')}</SelectItem>
+                    <SelectItem value="ALL">
+                      {t('allSessionTypes')}
+                    </SelectItem>
+
                     <SelectItem value="ONE_ON_ONE">
                       {t('exerciseTypes.ONE_ON_ONE')}
                     </SelectItem>
+
                     <SelectItem value="ONE_ON_MANY">
                       {t('exerciseTypes.ONE_ON_MANY')}
                     </SelectItem>
+
                     <SelectItem value="MANY_ON_MANY">
                       {t('exerciseTypes.MANY_ON_MANY')}
                     </SelectItem>
@@ -480,14 +566,20 @@ export default function ExplorePage() {
                   <SelectTrigger className="w-full rounded-[1rem] border-slate-200 bg-slate-50">
                     <SelectValue placeholder={t('anyGender')} />
                   </SelectTrigger>
+
                   <SelectContent>
-                    <SelectItem value="ALL">{t('anyGender')}</SelectItem>
+                    <SelectItem value="ALL">
+                      {t('anyGender')}
+                    </SelectItem>
+
                     <SelectItem value="ANY">
                       {t('genders.ANY')}
                     </SelectItem>
+
                     <SelectItem value="MALE">
                       {t('genders.MALE')}
                     </SelectItem>
+
                     <SelectItem value="FEMALE">
                       {t('genders.FEMALE')}
                     </SelectItem>
@@ -507,10 +599,19 @@ export default function ExplorePage() {
                 <SelectTrigger className="w-full rounded-[1rem] border-slate-200 bg-slate-50">
                   <SelectValue placeholder={t('sortPlaceholder')} />
                 </SelectTrigger>
+
                 <SelectContent>
-                  <SelectItem value="newest">{t('sortNewest')}</SelectItem>
-                  <SelectItem value="soonest">{t('sortSoonest')}</SelectItem>
-                  <SelectItem value="oldest">{t('sortOldest')}</SelectItem>
+                  <SelectItem value="newest">
+                    {t('sortNewest')}
+                  </SelectItem>
+
+                  <SelectItem value="soonest">
+                    {t('sortSoonest')}
+                  </SelectItem>
+
+                  <SelectItem value="oldest">
+                    {t('sortOldest')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
@@ -523,7 +624,9 @@ export default function ExplorePage() {
                   className="rounded-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                 >
                   <LocateFixed className="me-2 h-4 w-4" />
-                  {locating ? t('locating') : t('useLocation')}
+                  {locating
+                    ? t('locating')
+                    : t('useLocation')}
                 </Button>
               </div>
 
@@ -535,6 +638,7 @@ export default function ExplorePage() {
                   <Search className="me-2 h-4 w-4" />
                   {t('apply')}
                 </Button>
+
                 <Button
                   type="button"
                   variant="secondary"
@@ -549,8 +653,11 @@ export default function ExplorePage() {
 
             <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">
               <Users className="h-4 w-4" />
+
               <span>
-                {t('listingCount', { count: profiles.length })}
+                {t('listingCount', {
+                  count: profiles.length,
+                })}
               </span>
             </div>
           </div>
@@ -570,16 +677,50 @@ export default function ExplorePage() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {profiles.map((profile: ExploreListing) => {
               const art = getCardArt(profile);
-              const time = formatTimeLabel(profile, locale, t);
-              const artLabel = t(`artLabels.${art.labelKey}`);
-              const sports = Array.isArray(profile.sports)
-                ? profile.sports
-                : typeof profile.sports === 'string' && profile.sports.trim()
-                  ? profile.sports
+              const time = formatTimeLabel(
+                profile,
+                locale,
+                t
+              );
+
+              const artLabel = t(
+                `artLabels.${art.labelKey}`
+              );
+
+              const sportsSource =
+                profile.tags ?? profile.sports;
+
+              const sports = Array.isArray(sportsSource)
+                ? sportsSource
+                : typeof sportsSource === 'string' &&
+                    sportsSource.trim()
+                  ? sportsSource
                       .split(',')
                       .map((item) => item.trim())
                       .filter(Boolean)
                   : [];
+
+              const isJoining =
+                joining === String(profile.id);
+
+              const isPending =
+                profile.requestStatus === 'PENDING';
+
+              const isApproved =
+                profile.requestStatus === 'APPROVED';
+
+              const isRejected =
+                profile.requestStatus === 'REJECTED';
+
+              const isClosed =
+                profile.isActive === false;
+
+              const isDisabled =
+                isJoining ||
+                isClosed ||
+                isPending ||
+                isApproved ||
+                isRejected;
 
               return (
                 <Card
@@ -597,41 +738,63 @@ export default function ExplorePage() {
                       sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     />
+
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/35 to-transparent" />
+
                     <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-3">
                       <Badge className="border-white/15 bg-white/20 text-white backdrop-blur">
                         <Clock3 className="me-1 h-3.5 w-3.5" />
-                        <span dir="ltr">{time.primary}</span>
+
+                        <span dir="ltr">
+                          {time.primary}
+                        </span>
                       </Badge>
+
                       <Badge className="border-white/15 bg-white/15 text-white backdrop-blur">
                         {artLabel}
                       </Badge>
                     </div>
+
                     <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
                       <div className="flex flex-wrap gap-2">
                         <Badge className="border-white/10 bg-black/35 text-white backdrop-blur">
                           {t(
-                            `exerciseTypes.${profile.exerciseType || 'ONE_ON_ONE'}`
+                            `exerciseTypes.${
+                              profile.exerciseType ||
+                              'ONE_ON_ONE'
+                            }`
                           )}
                         </Badge>
+
                         <Badge className="border-white/10 bg-black/35 text-white backdrop-blur">
                           {t(
-                            `genders.${profile.genderPreference || 'ANY'}`
+                            `genders.${
+                              profile.genderPreference ||
+                              'ANY'
+                            }`
                           )}
                         </Badge>
                       </div>
+
                       <h2 className="mt-4 text-2xl font-semibold leading-tight">
                         {profile.title ||
-                          t('lookingForPartner', { sport: artLabel })}
+                          t('lookingForPartner', {
+                            sport: artLabel,
+                          })}
                       </h2>
+
                       <div className="mt-3 flex items-center gap-2 text-sm text-slate-200/90">
                         <span className="font-medium text-white">
                           {profile.user?.name || t('host')}
                         </span>
+
                         <span>•</span>
+
                         <MapPin className="h-4 w-4 shrink-0" />
+
                         <span>
-                          {profile.location || t('locationPending')}
+                          {profile.location ||
+                            t('locationPending')}
                         </span>
                       </div>
                     </div>
@@ -641,6 +804,7 @@ export default function ExplorePage() {
                     <CardTitle className="text-lg text-slate-950">
                       {t('sessionDetails')}
                     </CardTitle>
+
                     <CardDescription className="text-slate-500">
                       {time.secondary}
                     </CardDescription>
@@ -672,42 +836,76 @@ export default function ExplorePage() {
                         <span className="text-slate-500">
                           {t('sessionType')}
                         </span>
+
                         <span className="font-medium text-slate-950">
                           {t(
-                            `exerciseTypes.${profile.exerciseType || 'ONE_ON_ONE'}`
+                            `exerciseTypes.${
+                              profile.exerciseType ||
+                              'ONE_ON_ONE'
+                            }`
                           )}
                         </span>
                       </div>
+
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-slate-500">
                           {t('genderPreference')}
                         </span>
+
                         <span className="font-medium text-slate-950">
                           {t(
-                            `genders.${profile.genderPreference || 'ANY'}`
+                            `genders.${
+                              profile.genderPreference ||
+                              'ANY'
+                            }`
                           )}
                         </span>
                       </div>
+
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-slate-500">
                           {t('eventTime')}
                         </span>
-                        <span className="font-medium text-slate-950" dir="ltr">
+
+                        <span
+                          className="font-medium text-slate-950"
+                          dir="ltr"
+                        >
                           {time.primary}
                         </span>
                       </div>
                     </div>
 
                     <Button
-                      onClick={() => handleJoin(Number(profile.id))}
-                      disabled={joining === String(profile.id)}
-                      className="h-12 w-full rounded-full bg-gradient-to-r from-slate-900 via-slate-700 to-slate-500 text-white shadow-[0_18px_35px_rgba(15,23,42,0.16)] hover:from-slate-800 hover:via-slate-600 hover:to-slate-400"
+                      onClick={() =>
+                        handleJoin(Number(profile.id))
+                      }
+                      disabled={isDisabled}
+                      className={`w-full rounded-full ${
+                        isApproved
+                          ? 'bg-emerald-600 text-white hover:bg-emerald-600'
+                          : isPending
+                            ? 'bg-amber-500 text-white hover:bg-amber-500'
+                            : isRejected
+                              ? 'bg-red-500 text-white hover:bg-red-500'
+                              : isClosed
+                                ? 'bg-slate-400 text-white hover:bg-slate-400'
+                                : 'bg-slate-900 text-white hover:bg-slate-700'
+                      }`}
                     >
-                      {joining === String(profile.id) ? (
+                      {isJoining ? (
                         <>
-                          <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           {t('sending')}
                         </>
+                      ) : isClosed ? (
+                        t('closed')
+                      ) : isPending ? (
+                        t('pending')
+                      ) : isApproved ? (
+                        t('joined')
+                      ) : isRejected ? (
+                        t('rejected')
                       ) : (
                         t('join')
                       )}

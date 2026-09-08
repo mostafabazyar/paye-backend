@@ -15,12 +15,6 @@ export const users: User[] = [
     password: "pass456",
     name: "Test User 2"
   },
-  {
-    id: 3,
-    phone: "09112233445",  // Without + prefix
-    password: "demo789",
-    name: "Demo User"
-  }
 ];
 
 // Helper function to normalize phone number

@@ -23,13 +23,114 @@ const isPastDate = (value?: Date | string | null) => {
   return !Number.isNaN(date.getTime()) && date.getTime() <= Date.now();
 };
 
+/**
+ * Parse birth date from frontend.
+ *
+ * Expected:
+ * YYYY-MM-DD
+ *
+ * Example:
+ * 1999-08-16
+ */
+const parseBirthDate = (value?: unknown): Date | null => {
+  if (!value || typeof value !== 'string') {
+    return null;
+  }
+
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+
+  const date = new Date(
+    Date.UTC(year, month - 1, day)
+  );
+
+  // Prevent invalid dates like 1999-02-31
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return date;
+};
+
+/**
+ * Calculate age from birth date.
+ */
+const calculateAge = (birthDate?: Date | null): number | null => {
+  if (!birthDate) {
+    return null;
+  }
+
+  const today = new Date();
+  const birth = new Date(birthDate);
+
+  let age =
+    today.getUTCFullYear() -
+    birth.getUTCFullYear();
+
+  const currentMonth = today.getUTCMonth();
+  const birthMonth = birth.getUTCMonth();
+
+  const currentDay = today.getUTCDate();
+  const birthDay = birth.getUTCDate();
+
+  if (
+    currentMonth < birthMonth ||
+    (
+      currentMonth === birthMonth &&
+      currentDay < birthDay
+    )
+  ) {
+    age--;
+  }
+
+  return age;
+};
+
+/**
+ * Format birth date as YYYY-MM-DD.
+ */
+const formatBirthDate = (birthDate?: Date | null): string | null => {
+  if (!birthDate) {
+    return null;
+  }
+
+  const date = new Date(birthDate);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
 // Helper to format user response
 const formatUserResponse = (user: any) => {
   return {
     id: user.id,
     phone: user.phone,
     name: user.name || null,
-    age: user.age || null,
+
+    // Exact birth date
+    birthDate: formatBirthDate(user.birthDate),
+
+    // Calculated age
+    age: calculateAge(user.birthDate),
+
     gender: user.gender || null,
     interestedIn: user.interestedIn || 'EVERYONE',
     preferredSports: user.preferredSports ? user.preferredSports.split(',').filter(Boolean) : [],
@@ -43,18 +144,76 @@ const formatUserResponse = (user: any) => {
 
 export const setupProfile = async (req: Request, res: Response) => {
   try {
-    const { name, age, gender, interestedIn, preferredSports, preferredSessionTypes, bio } = req.body;
+    const { name, birthDate, gender, interestedIn, preferredSports, preferredSessionTypes, bio } = req.body;
     const userId = (req as any).user?.id || (req as any).userId;
 
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
+    /**
+     * Parse birth date.
+     *
+     * Frontend sends:
+     * "1999-08-16"
+     */
+    const parsedBirthDate = parseBirthDate(birthDate);
+
+    if (!parsedBirthDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid birth date. Expected format YYYY-MM-DD'
+      });
+    }
+
+    /**
+     * Birth date cannot be in the future.
+     */
+    if (parsedBirthDate.getTime() > Date.now()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Birth date cannot be in the future'
+      });
+    }
+
+    /**
+     * Calculate age.
+     */
+    const age = calculateAge(parsedBirthDate);
+
+    if (age === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Unable to calculate age'
+      });
+    }
+
+    /**
+     * Validate age.
+     */
+    if (age < 16) {
+      return res.status(400).json({
+        success: false,
+        message: 'You must be at least 16 years old'
+      });
+    }
+
+    if (age > 70) {
+      return res.status(400).json({
+        success: false,
+        message: 'Age cannot be greater than 70'
+      });
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
         name,
-        age: typeof age === 'string' ? parseInt(age) : age,
+
+        // IMPORTANT:
+        // Do NOT use parseInt here.
+        birthDate: parsedBirthDate,
+
         gender,
         interestedIn,
         preferredSports: Array.isArray(preferredSports) ? preferredSports.join(',') : null,
@@ -138,6 +297,7 @@ export const createProfileListing = async (req: Request, res: Response) => {
     const tagsString = Array.isArray(sports)
       ? sports.map((sport: string) => sport.trim().toLowerCase()).join(',')
       : String(tags || '').toLowerCase();
+
     const profile = await prisma.profile.create({
       data: {
         userId,
@@ -164,8 +324,26 @@ export const createProfileListing = async (req: Request, res: Response) => {
 // Explore profile listings, optional filter by sport via query param
 export const exploreListings = async (req: Request, res: Response) => {
   try {
-    const { sport, skip = '0', take = '20', exerciseType, genderPreference, location, sortBy = 'newest' } = req.query as any;
+    const {
+      sport,
+      skip = '0',
+      take = '20',
+      exerciseType,
+      genderPreference,
+      location,
+      sortBy = 'newest'
+    } = req.query as any;
 
+    const userId = (req as any).user?.id || (req as any).userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized'
+      });
+    }
+
+    // Automatically close listings whose scheduled time has passed.
     await prisma.profile.updateMany({
       where: {
         isActive: true,
@@ -178,10 +356,17 @@ export const exploreListings = async (req: Request, res: Response) => {
       },
     });
 
-    const where: any = { isActive: true };
+    const where: any = {
+      isActive: true,
+        userId: {
+        not: userId,
+      },
+    };
 
     if (sport) {
-      where.tags = { contains: String(sport).toLowerCase() };
+      where.tags = {
+        contains: String(sport).toLowerCase(),
+      };
     }
 
     if (exerciseType) {
@@ -193,12 +378,17 @@ export const exploreListings = async (req: Request, res: Response) => {
     }
 
     if (location) {
-      where.location = { contains: String(location).toLowerCase() };
+      where.location = {
+        contains: String(location).toLowerCase(),
+      };
     }
 
     const orderBy =
       sortBy === 'soonest'
-        ? [{ scheduledAt: 'asc' as const }, { createdAt: 'desc' as const }]
+        ? [
+            { scheduledAt: 'asc' as const },
+            { createdAt: 'desc' as const },
+          ]
         : sortBy === 'oldest'
           ? { createdAt: 'asc' as const }
           : { createdAt: 'desc' as const };
@@ -211,13 +401,22 @@ export const exploreListings = async (req: Request, res: Response) => {
             id: true,
             phone: true,
             name: true,
+            birthDate: true,
             photos: true,
             avgRating: true,
           },
         },
+        requests: {
+          where: {
+            requesterId: userId,
+          },
+          select: {
+            status: true,
+          },
+        },
       },
-      skip: parseInt(skip),
-      take: parseInt(take),
+      skip: parseInt(skip, 10),
+      take: parseInt(take, 10),
       orderBy,
     });
 
@@ -227,26 +426,42 @@ export const exploreListings = async (req: Request, res: Response) => {
       location: p.location,
       exerciseType: p.exerciseType,
       genderPreference: p.genderPreference,
-      tags: p.tags ? p.tags.split(',') : [],
+      tags: p.tags
+        ? p.tags.split(',').filter(Boolean)
+        : [],
       maxInvites: p.maxInvites,
       goDutch: p.goDutch,
       moreInfo: p.moreInfo,
       scheduledAt: p.scheduledAt,
+      isActive: p.isActive,
       createdAt: p.createdAt,
+
+      // Current user's request status for this listing
+      requestStatus: p.requests[0]?.status || null,
+
       user: formatUserResponse(p.user),
     }));
 
-    res.json({ success: true, profiles: formatted });
+    return res.json({
+      success: true,
+      profiles: formatted,
+    });
   } catch (error) {
     console.error('Explore listings error:', error);
-    res.status(500).json({ success: false, message: 'Failed to explore listings' });
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to explore listings'
+    });
   }
 };
+
 
 export const myCreatedProfileListing = async (req: Request, res: Response) => {
   try {
     // Extract authenticated user ID from middleware
     const userId = (req as any).user?.id || (req as any).userId;
+
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
@@ -283,7 +498,7 @@ export const myCreatedProfileListing = async (req: Request, res: Response) => {
       createdAt: profile.createdAt,
       totalRequests: profile._count.requests,
       // Frontend security flag: True because this route only returns the user's own data
-      isOwner: true, 
+      isOwner: true,
     }));
 
     return res.json({
@@ -297,12 +512,11 @@ export const myCreatedProfileListing = async (req: Request, res: Response) => {
 };
 
 // Edit an existing profile listing owned by the current user
-// Edit an existing profile listing owned by the current user
 export const editCreatedProfileListing = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id || (req as any).userId;
-    const { id } = req.params; // Get profile ID from url parameter
-    
+    const { id } = req.params;
+
     const {
       sports,
       exerciseType,
@@ -314,121 +528,227 @@ export const editCreatedProfileListing = async (req: Request, res: Response) => 
       goDutch,
       moreInfo,
       tags,
-      isActive
+      isActive,
     } = req.body;
 
-    console.log('🔧 Edit request details:', { 
-      userId, 
-      profileId: id, 
-      body: req.body 
-    });
-
     if (!userId) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
-    }
-
-    // Convert id to number (since your schema uses Int for id)
-    const profileId = parseInt(id as string);
-    if (isNaN(profileId)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid profile ID format' 
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized'
       });
     }
 
-    console.log('📝 Looking for profile with id:', profileId);
+    const profileId = parseInt(id as string, 10);
 
-    // 1. Verify that the listing exists and belongs to the requesting user
+    if (Number.isNaN(profileId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid profile ID format'
+      });
+    }
+
+    // Verify ownership
     const existingProfile = await prisma.profile.findFirst({
       where: {
-        id: profileId, // Now this is definitely a number
-        userId: userId
-      }
+        id: profileId,
+        userId,
+      },
     });
 
-    console.log('🔍 Found profile:', existingProfile);
-
     if (!existingProfile) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Listing not found or you do not have permission to edit it.' 
+      return res.status(404).json({
+        success: false,
+        message: 'Listing not found or you do not have permission to edit it.'
       });
     }
 
-    // 2. Parse date options if they are being updated
+    // Validate exercise type against Prisma enum
+    const validExerciseTypes = [
+      'ONE_ON_ONE',
+      'ONE_ON_MANY',
+      'MANY_ON_MANY',
+    ];
+
+    if (
+      exerciseType !== undefined &&
+      !validExerciseTypes.includes(exerciseType)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid exercise type'
+      });
+    }
+
+    // Validate gender preference
+    const validGenderPreferences = [
+      'ANY',
+      'MEN_ONLY',
+      'WOMEN_ONLY',
+    ];
+
+    const mappedGenderPreference =
+      genderPreference !== undefined
+        ? genderMap[genderPreference] || genderPreference
+        : undefined;
+
+    if (
+      mappedGenderPreference !== undefined &&
+      !validGenderPreferences.includes(mappedGenderPreference)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid gender preference'
+      });
+    }
+
+    // Parse scheduled date
     let parsedScheduledAt = existingProfile.scheduledAt;
     let computedIsActive = existingProfile.isActive;
 
     if (scheduledAt !== undefined) {
       const parsed = parseDateOrNull(scheduledAt);
+
       if (scheduledAt && !parsed) {
-        return res.status(400).json({ success: false, message: 'Invalid schedule time' });
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid schedule time'
+        });
       }
+
       parsedScheduledAt = parsed;
       computedIsActive = !isPastDate(parsed);
     }
 
-    // Explicitly override isActive flag if the user manually passes it in the body
-    if (isActive !== undefined) {
+    // Convert sports/tags to the database tags string
+    let tagsString = existingProfile.tags;
+
+    if (sports !== undefined) {
+      tagsString = Array.isArray(sports)
+        ? sports
+            .map((sport: string) => sport.trim().toLowerCase())
+            .filter(Boolean)
+            .join(',')
+        : String(sports || '').toLowerCase();
+    } else if (tags !== undefined) {
+      tagsString = Array.isArray(tags)
+        ? tags
+            .map((tag: string) => tag.trim().toLowerCase())
+            .filter(Boolean)
+            .join(',')
+        : String(tags || '').toLowerCase();
+    }
+
+    // Validate maxInvites
+    let parsedMaxInvites = existingProfile.maxInvites;
+
+    if (maxInvites !== undefined) {
+      parsedMaxInvites = Number(maxInvites);
+
+      if (
+        !Number.isInteger(parsedMaxInvites) ||
+        parsedMaxInvites < 1
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: 'maxInvites must be at least 1'
+        });
+      }
+    }
+
+    /*
+     * Never allow a listing that is already full to be reopened
+     * by simply sending isActive: true.
+     */
+    const approvedCount = await prisma.request.count({
+      where: {
+        profileId,
+        status: 'APPROVED',
+      },
+    });
+
+    const finalMaxInvites =
+      parsedMaxInvites ?? existingProfile.maxInvites;
+
+    if (approvedCount >= finalMaxInvites) {
+      computedIsActive = false;
+    } else if (isActive !== undefined) {
       computedIsActive = !!isActive;
     }
 
-    // 3. Process tags/sports array matching your create listing logic
-    let tagsString = existingProfile.tags;
-    if (sports !== undefined) {
-      tagsString = Array.isArray(sports)
-        ? sports.map((sport: string) => sport.trim().toLowerCase()).join(',')
-        : String(sports || '').toLowerCase();
-    } else if (tags !== undefined) {
-      tagsString = String(tags || '').toLowerCase();
+    // A past scheduled time must always remain inactive.
+    if (isPastDate(parsedScheduledAt)) {
+      computedIsActive = false;
     }
 
-    // Map gender preference adjustments if present
-    const preference = genderPreference !== undefined 
-      ? (genderMap[genderPreference] || genderPreference || 'ANY') 
-      : undefined;
-
-    // Build update data object
     const updateData: any = {};
-    
-    if (title !== undefined) updateData.title = title;
-    if (location !== undefined) updateData.location = location;
-    if (exerciseType !== undefined) updateData.exerciseType = exerciseType;
-    if (preference !== undefined) updateData.genderPreference = preference;
-    if (scheduledAt !== undefined) updateData.scheduledAt = parsedScheduledAt;
-    if (maxInvites !== undefined) updateData.maxInvites = Number(maxInvites) || 1;
-    if (goDutch !== undefined) updateData.goDutch = !!goDutch;
-    if (moreInfo !== undefined) updateData.moreInfo = moreInfo || null;
-    if (tagsString !== undefined) updateData.tags = tagsString;
-    if (isActive !== undefined) updateData.isActive = computedIsActive;
 
-    console.log('📦 Update data:', updateData);
+    if (title !== undefined) {
+      updateData.title = String(title).trim();
+    }
 
-    // 4. Perform the transactional update operation
+    if (location !== undefined) {
+      updateData.location = String(location).trim();
+    }
+
+    if (exerciseType !== undefined) {
+      updateData.exerciseType = exerciseType;
+    }
+
+    if (mappedGenderPreference !== undefined) {
+      updateData.genderPreference = mappedGenderPreference;
+    }
+
+    if (scheduledAt !== undefined) {
+      updateData.scheduledAt = parsedScheduledAt;
+    }
+
+    if (maxInvites !== undefined) {
+      updateData.maxInvites = parsedMaxInvites;
+    }
+
+    if (goDutch !== undefined) {
+      updateData.goDutch = !!goDutch;
+    }
+
+    if (moreInfo !== undefined) {
+      updateData.moreInfo = moreInfo
+        ? String(moreInfo).trim()
+        : null;
+    }
+
+    if (sports !== undefined || tags !== undefined) {
+      updateData.tags = tagsString;
+    }
+
+    // Always write the calculated active state.
+    updateData.isActive = computedIsActive;
+
     const updatedProfile = await prisma.profile.update({
       where: {
-        id: existingProfile.id
+        id: existingProfile.id,
       },
-      data: updateData
+      data: updateData,
     });
-
-    console.log('✅ Profile updated successfully:', updatedProfile.id);
 
     return res.json({
       success: true,
       message: 'Listing updated successfully',
       profile: {
         ...updatedProfile,
-        tags: updatedProfile.tags ? updatedProfile.tags.split(',') : []
-      }
+        tags: updatedProfile.tags
+          ? updatedProfile.tags.split(',').filter(Boolean)
+          : [],
+      },
     });
-
   } catch (error) {
-    console.error('❌ Edit profile listing error:', error);
-    return res.status(500).json({ 
-      success: false, 
+    console.error('Edit profile listing error:', error);
+
+    return res.status(500).json({
+      success: false,
       message: 'Failed to update profile listing',
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error
+        ? error.message
+        : String(error)
     });
   }
 };
