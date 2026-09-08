@@ -15,8 +15,16 @@ export const users: User[] = [
     password: "pass456",
     name: "Test User 2"
   },
-];
-
+  {
+    id: 3,
+    phone: "09112233445",  // Without + prefix
+    password: "demo789", 
+    name: "Demo User"
+  },
+  { id: 4, phone: "09302551002", password: "kiarash123", name: "kiarash" },
+  { id: 5, phone: "09906969147", password: "saman456", name: "saman" },
+  { id: 6, phone: "09170080130", password: "shayan123", name: "shawn" },
+];  
 // Helper function to normalize phone number
 export const normalizePhone = (phone: string): string => {
   // Remove spaces and special characters
