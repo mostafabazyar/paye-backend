@@ -8,7 +8,10 @@ const ONE_WEEK = 60 * 60 * 24 * 7;
 const baseCookieOptions = {
   httpOnly: true,
   sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
+  // Explicit flag — keep `false` while serving over plain HTTP.
+  // Flip to `true` (or set COOKIE_SECURE=true in the environment)
+  // once the admin panel is behind HTTPS.
+  secure: process.env.COOKIE_SECURE === "true",
   path: "/",
 };
 

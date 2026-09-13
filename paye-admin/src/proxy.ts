@@ -3,7 +3,7 @@ import { ADMIN_COOKIE } from "@/lib/auth-constants";
 
 const PUBLIC_PATHS = ["/login"];
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const hasToken = req.cookies.has(ADMIN_COOKIE);
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
