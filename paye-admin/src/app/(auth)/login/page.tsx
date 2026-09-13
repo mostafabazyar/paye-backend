@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Card,
@@ -14,7 +14,7 @@ import { OtpForm } from "@/components/features/auth/OtpForm";
 
 type Step = { kind: "phone" } | { kind: "otp"; phone: string };
 
-export default function LoginPage() {
+function LoginContent() {
   const [step, setStep] = useState<Step>({ kind: "phone" });
   const searchParams = useSearchParams();
   const from = searchParams.get("from") ?? "/";
@@ -43,6 +43,8 @@ export default function LoginPage() {
               phone={step.phone}
               onBack={() => setStep({ kind: "phone" })}
               onSuccess={() => {
+                // Full-page navigation so middleware + Server Components
+                // see the fresh cookie immediately.
                 window.location.href = from;
               }}
             />
@@ -50,5 +52,19 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+          <div className="text-sm text-muted-foreground">Loading…</div>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }
