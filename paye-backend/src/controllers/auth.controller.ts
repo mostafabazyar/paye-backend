@@ -121,113 +121,132 @@ export const verify = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Phone and OTP are required' });
     }
 
-    // Normalize the phone number
     const normalizedPhone = normalizePhone(phone);
     console.log(`🔍 Verifying OTP for ${normalizedPhone} → ${otp}`);
 
-    // Find valid OTP in database
+    // Find valid OTP
     const otpRecord = await prisma.otp.findFirst({
       where: {
         phone: normalizedPhone,
         otp,
         used: false,
-        expiresAt: {
-          gt: new Date()
-        }
+        expiresAt: { gt: new Date() },
       },
-      orderBy: {
-        createdAt: 'desc'
-      }
+      orderBy: { createdAt: 'desc' },
     });
 
-    // Check if OTP is valid
     if (!otpRecord) {
-      // Check if there's an expired OTP to give a better error message
       const expiredOtp = await prisma.otp.findFirst({
         where: {
           phone: normalizedPhone,
           otp,
           used: false,
-          expiresAt: {
-            lte: new Date()
-          }
-        }
+          expiresAt: { lte: new Date() },
+        },
       });
 
       if (expiredOtp) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'OTP has expired. Please request a new one.' 
+        return res.status(400).json({
+          success: false,
+          message: 'OTP has expired. Please request a new one.',
         });
       }
 
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid OTP. Please check and try again.' 
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid OTP. Please check and try again.',
       });
     }
 
-    // Mark OTP as used
+    // Mark OTP used
     await prisma.otp.update({
       where: { id: otpRecord.id },
-      data: { used: true }
+      data: { used: true },
     });
 
-    // Find or create user
-    let user = await prisma.user.findUnique({ 
-      where: { phone: normalizedPhone } 
+    // --- PATTERN B ---
+    // 1. If a real User already exists (completed setup previously), log them in.
+    const existingUser = await prisma.user.findUnique({
+      where: { phone: normalizedPhone },
     });
 
-    const isNewUser = !user;
+    if (existingUser) {
+      const token = jwt.sign(
+        { id: existingUser.id, phone: existingUser.phone, type: 'USER' },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
 
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          phone: normalizedPhone,
-          isVerified: true,
-        }
-      });
-    } else {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { isVerified: true }
+      return res.json({
+        success: true,
+        message: 'Login successful',
+        phase: 'USER',
+        user: formatUserResponse(existingUser),
+        token,
+        isNewUser: false,
       });
     }
 
+    // 2. No User yet → ensure a DraftUser exists (create if missing)
+    let draft = await prisma.draftUser.findFirst({
+      where: { phone: normalizedPhone },
+    });
+
+    if (!draft) {
+      draft = await prisma.draftUser.create({
+        data: {
+          phone: normalizedPhone,
+          lastStep: 1,
+        },
+      });
+    }
+
+    // Token carries draft.id + phase. Middleware and other controllers
+    // must branch on `phase === 'DRAFT'`.
     const token = jwt.sign(
-      { id: user.id, phone: user.phone },
+      { id: draft.id, phone: draft.phone, type: 'DRAFT' },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    // Format user response
-    const userResponse = {
-      id: user.id,
-      phone: user.phone,
-      name: user.name || null,
-      birthDate: user.birthDate || null,
-      gender: user.gender || null,
-      interestedIn: user.interestedIn || 'EVERYONE',
-      preferredSports: user.preferredSports ? user.preferredSports.split(',').filter(Boolean) : [],
-      preferredSessionTypes: user.preferredSessionTypes ? user.preferredSessionTypes.split(',').filter(Boolean) : [],
-      bio: user.bio || null,
-      photos: user.photos ? JSON.parse(user.photos) : [],
-      avgRating: user.avgRating,
-      isVerified: user.isVerified,
-    };
-
-    res.json({
+    return res.json({
       success: true,
-      message: "Login successful",
-      user: userResponse,
+      message: 'OTP verified. Continue with profile setup.',
+      phase: 'DRAFT',
+      user: {
+        id: draft.id,
+        phone: draft.phone,
+        name: draft.name ?? null,
+        isVerified: false,
+      },
       token,
-      isNewUser
+      isNewUser: true,
     });
   } catch (error) {
-    console.error(error);
+    console.error('Verify error:', error);
     res.status(500).json({ success: false, message: 'Verification failed' });
   }
 };
+
+// Reuse this — extract once, use in both branches
+const formatUserResponse = (user: any) => ({
+  id: user.id,
+  phone: user.phone,
+  name: user.name || null,
+  birthDate: user.birthDate || null,
+  gender: user.gender || null,
+  interestedIn: user.interestedIn || 'EVERYONE',
+  preferredSports: user.preferredSports
+    ? user.preferredSports.split(',').filter(Boolean)
+    : [],
+  preferredSessionTypes: user.preferredSessionTypes
+    ? user.preferredSessionTypes.split(',').filter(Boolean)
+    : [],
+  bio: user.bio || null,
+  photos: user.photos ? JSON.parse(user.photos) : [],
+  avgRating: user.avgRating,
+  isVerified: user.isVerified,
+});
 
 // Optional: Resend OTP endpoint
 export const resendOTP = async (req: Request, res: Response) => {

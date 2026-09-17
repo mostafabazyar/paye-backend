@@ -3,11 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useLocale, useTranslations } from "next-intl";
-import { LocateFixed, Loader2, MapPin } from "lucide-react";
+import {
+  LocateFixed,
+  Loader2,
+  MapPin,
+  Search,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -20,8 +26,11 @@ import {
   fetchCities,
   fetchNeighborhoods,
 } from "@/lib/api/locations";
+import {
+  searchAddress,
+  type NominatimSearchResult,
+} from "@/lib/api/geocode";
 
-/** Leaflet must be loaded client-side only */
 const LocationMap = dynamic(
   () => import("@/components/profile-setup/LocationMap"),
   {
@@ -99,8 +108,13 @@ export function Step3Location({
   const [matching, setMatching] = useState(false);
   const [focusZoom, setFocusZoom] = useState<number | undefined>(undefined);
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<NominatimSearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /* ---------- Queries ---------- */
   const countriesQuery = useQuery({
     queryKey: ["locations", "countries"],
     queryFn: fetchCountries,
@@ -121,7 +135,6 @@ export function Step3Location({
     staleTime: 10 * 60_000,
   });
 
-  // Default to Iran
   useEffect(() => {
     if (!countryId && countriesQuery.data?.length) {
       onChange({ countryId: countriesQuery.data[0].id });
@@ -132,16 +145,17 @@ export function Step3Location({
     return isPersian && nameFa ? nameFa : name;
   }
 
-  /* ---------- Reverse-geocode + match against our tables ---------- */
   const matchSeq = useRef(0);
 
-  async function matchCoords(lat: number, lon: number, opts?: { silent?: boolean }) {
+  async function matchCoords(
+    lat: number,
+    lon: number,
+    opts?: { silent?: boolean }
+  ) {
     const seq = ++matchSeq.current;
     setMatching(true);
     try {
       const geo = await reverseGeocode(lat, lon);
-
-      // Ignore stale results if a newer match started
       if (seq !== matchSeq.current) return;
 
       const countries = countriesQuery.data ?? [];
@@ -150,6 +164,7 @@ export function Step3Location({
         countries.find((c) => c.code === "IR");
 
       if (!matchedCountry) {
+        setFocusZoom(11);
         if (!opts?.silent) toast.success(t("locationAddedCoordsOnly"));
         return;
       }
@@ -160,7 +175,6 @@ export function Step3Location({
           looseMatch(c.name, geo.city) ||
           (isPersian && c.nameFa && looseMatch(c.nameFa, geo.city))
       );
-
       if (seq !== matchSeq.current) return;
 
       if (!matchedCity) {
@@ -169,6 +183,7 @@ export function Step3Location({
           cityId: null,
           neighborhoodId: null,
         });
+        setFocusZoom(6);
         if (!opts?.silent) toast.success(t("locationAddedCountryOnly"));
         return;
       }
@@ -179,7 +194,6 @@ export function Step3Location({
           looseMatch(h.name, geo.neighborhood) ||
           (isPersian && h.nameFa && looseMatch(h.nameFa, geo.neighborhood))
       );
-
       if (seq !== matchSeq.current) return;
 
       onChange({
@@ -188,25 +202,25 @@ export function Step3Location({
         neighborhoodId: matchedHood ? matchedHood.id : null,
       });
 
+      setFocusZoom(matchedHood ? 15 : 13);
       if (!opts?.silent) {
         toast.success(
           matchedHood ? t("locationAdded") : t("locationAddedCityOnly")
         );
       }
     } catch {
+      setFocusZoom(11);
       if (!opts?.silent) toast.success(t("locationAddedCoordsOnly"));
     } finally {
       if (seq === matchSeq.current) setMatching(false);
     }
   }
 
-  /* ---------- "Use my location" ---------- */
   async function handleUseLocation() {
     if (!navigator.geolocation) {
       toast.error(t("locationUnavailable"));
       return;
     }
-
     setLocating(true);
     try {
       const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
@@ -215,9 +229,9 @@ export function Step3Location({
           timeout: 10000,
         });
       });
-
       const { latitude: lat, longitude: lon } = pos.coords;
       onChange({ latitude: lat, longitude: lon });
+      setFocusZoom(15);
       await matchCoords(lat, lon);
     } catch {
       toast.error(t("locationFailed"));
@@ -226,24 +240,98 @@ export function Step3Location({
     }
   }
 
-  /* ---------- User picks a point on the map / drags pin ---------- */
+  function handleSearchChange(value: string) {
+    setSearchQuery(value);
+    setShowResults(true);
+
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    if (!value.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    searchTimeout.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const results = await searchAddress(value, 5);
+        setSearchResults(results);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 500);
+  }
+
+  async function handlePickSearchResult(result: NominatimSearchResult) {
+    const lat = Number(result.lat);
+    const lon = Number(result.lon);
+    setShowResults(false);
+    setSearchQuery(result.display_name);
+    onChange({ latitude: lat, longitude: lon });
+    setFocusZoom(15);
+    await matchCoords(lat, lon);
+  }
+
   const pendingMatch = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function handleMapPick(lat: number, lng: number) {
     onChange({ latitude: lat, longitude: lng });
+    setFocusZoom(undefined);
 
     if (pendingMatch.current) clearTimeout(pendingMatch.current);
     pendingMatch.current = setTimeout(() => {
       void matchCoords(lat, lng, { silent: true });
-    }, 600); // debounce: user may be dragging
+    }, 600);
   }
 
   const hasCoords = latitude != null && longitude != null;
 
-  /* ---------- Render ---------- */
   return (
     <div className="space-y-4">
-      {/* Top button */}
+      {/* Search box */}
+      <div className="relative">
+        <div className="relative">
+          {searching ? (
+            <Loader2 className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-slate-400" />
+          ) : (
+            <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          )}
+          <Input
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            onFocus={() => setShowResults(true)}
+            onBlur={() => setTimeout(() => setShowResults(false), 150)}
+            placeholder={
+              isPersian
+                ? "آدرس یا محله را جستجو کن..."
+                : "Search address or neighborhood..."
+            }
+            className="h-12 rounded-full border-slate-200 bg-white ps-10 text-base"
+          />
+        </div>
+
+        {showResults && searchResults.length > 0 && (
+          <ul className="absolute z-[500] mt-2 max-h-64 w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-lg">
+            {searchResults.map((r) => (
+              <li key={r.place_id}>
+                <button
+                  type="button"
+                  onClick={() => handlePickSearchResult(r)}
+                  className="flex w-full items-start gap-2 px-4 py-3 text-start text-sm hover:bg-slate-50"
+                >
+                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
+                  <span className="line-clamp-2 text-slate-700">
+                    {r.display_name}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Use my location */}
       <Button
         type="button"
         variant="secondary"
@@ -265,6 +353,7 @@ export function Step3Location({
         longitude={longitude}
         onPick={handleMapPick}
         isRtl={isPersian}
+        focusZoom={focusZoom}
       />
 
       {/* Summary */}
@@ -309,7 +398,7 @@ export function Step3Location({
         </div>
       )}
 
-      {/* Dropdowns — always visible */}
+      {/* Dropdowns */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Select
           value={countryId ? String(countryId) : ""}

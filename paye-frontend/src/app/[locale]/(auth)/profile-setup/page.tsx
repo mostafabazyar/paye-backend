@@ -177,42 +177,48 @@ function primaryLabel(): string {
     }
   }
 
-  async function submitFinal() {
-    setSubmitting(true);
-    try {
-      const payload = {
-        name: data.name.trim(),
-        birthDate: data.birthDate,
-        gender: data.gender,
-        interestedIn: data.interestedIn,
-        preferredSessionTypes: data.preferredSessionTypes,
-        sportSlugs: data.sportSlugs,
-        bio: data.bio || null,
-        countryId: data.countryId,
-        cityId: data.cityId,
-        neighborhoodId: data.neighborhoodId,
-        latitude: data.latitude,
-        longitude: data.longitude,
-      };
+async function submitFinal() {
+  setSubmitting(true);
+  try {
+    // 1) Save the wizard's data to the DraftUser
+    const setup = await apiClient.post('/profile/setup', {
+      name: data.name.trim(),
+      birthDate: data.birthDate,
+      gender: data.gender,
+      interestedIn: data.interestedIn,
+      preferredSessionTypes: data.preferredSessionTypes,
+      sportSlugs: data.sportSlugs,
+      bio: data.bio || null,
+      countryId: data.countryId,
+      cityId: data.cityId,
+      neighborhoodId: data.neighborhoodId,
+      latitude: data.latitude,
+      longitude: data.longitude,
+    });
 
-      const res = await apiClient.post("/profile/setup", payload);
-
-      setAuth(res.user, res.token || "");
-
-      toast.success(t("successTitle"), {
-        description: t("successDesc"),
-      });
-
-      router.replace("/explore");
-    } catch (err: unknown) {
-      toast.error(t("errorTitle"), {
-        description:
-          (err as { message?: string })?.message || t("errorFallback"),
-      });
-    } finally {
-      setSubmitting(false);
+    if (!setup?.success) {
+      throw new Error(setup?.message || 'Failed to save profile');
     }
+
+    // 2) Complete the signup — creates the real User
+    const res = await apiClient.post('/draft/complete', {});
+
+    setAuth(res.user, res.token || '');
+
+    toast.success(t('successTitle'), {
+      description: t('successDesc'),
+    });
+
+    router.replace('/explore');
+  } catch (err: unknown) {
+    toast.error(t('errorTitle'), {
+      description:
+        (err as { message?: string })?.message || t('errorFallback'),
+    });
+  } finally {
+    setSubmitting(false);
   }
+}
 
   if (!hasHydrated || !user) return null;
 

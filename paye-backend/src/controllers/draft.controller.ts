@@ -1,5 +1,11 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import jwt from 'jsonwebtoken';
+
+
+const JWT_SECRET =
+  process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
+
 
 const prisma = new PrismaClient();
 
@@ -147,5 +153,126 @@ export const getMyDraft = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('getMyDraft error:', error);
     return res.status(500).json({ success: false, message: 'Failed to load draft' });
+  }
+};
+
+export const completeDraft = async (req: Request, res: Response) => {
+  try {
+    const authUser = (req as any).user;
+
+    if (!authUser?.id || authUser.type !== 'DRAFT') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const draft = await prisma.draftUser.findUnique({
+      where: { id: authUser.id },
+    });
+
+    if (!draft) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Draft not found' });
+    }
+
+    if (!draft.name || !draft.birthDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Draft is missing required fields (name, birthDate)',
+      });
+    }
+
+    // Parse sports slugs
+    let sportSlugs: string[] = [];
+    try {
+      sportSlugs = draft.sportsSlugs ? JSON.parse(draft.sportsSlugs) : [];
+    } catch {
+      sportSlugs = [];
+    }
+
+    const sports = await prisma.sport.findMany({
+      where: { slug: { in: sportSlugs }, isActive: true },
+      select: { id: true },
+    });
+
+    const sessionTypes = draft.sessionTypes
+      ? draft.sessionTypes.split(',').filter(Boolean)
+      : [];
+
+    // Atomic: create User, copy sports, mark draft complete
+    const createdUser = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
+        data: {
+          phone: draft.phone,
+          name: draft.name,
+          birthDate: draft.birthDate,
+          gender: draft.gender,
+          interestedIn: draft.interestedIn ?? 'EVERYONE',
+          preferredSessionTypes:
+            sessionTypes.length > 0 ? sessionTypes.join(',') : null,
+          bio: draft.bio,
+          countryId: draft.countryId,
+          cityId: draft.cityId,
+          neighborhoodId: draft.neighborhoodId,
+          latitude: draft.latitude,
+          longitude: draft.longitude,
+          isVerified: true,
+        },
+      });
+
+      if (sports.length > 0) {
+        await tx.userSport.createMany({
+          data: sports.map((s) => ({ userId: newUser.id, sportId: s.id })),
+          skipDuplicates: true,
+        });
+      }
+
+      // Link the draft to the new user and mark complete
+      await tx.draftUser.update({
+        where: { id: draft.id },
+        data: {
+          userId: newUser.id,
+          completedAt: new Date(),
+          abandonedAt: null,
+        },
+      });
+
+      return newUser;
+    });
+
+    // Issue a real USER token — the DRAFT token is now dead
+    const token = jwt.sign(
+      { id: createdUser.id, phone: createdUser.phone, type: 'USER' },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Reuse the same response shaper
+    const userResponse = {
+      id: createdUser.id,
+      phone: createdUser.phone,
+      name: createdUser.name,
+      birthDate: createdUser.birthDate,
+      gender: createdUser.gender,
+      interestedIn: createdUser.interestedIn,
+      preferredSports: sportSlugs,
+      preferredSessionTypes: sessionTypes,
+      bio: createdUser.bio,
+      photos: createdUser.photos ? JSON.parse(createdUser.photos) : [],
+      avgRating: createdUser.avgRating,
+      isVerified: createdUser.isVerified,
+    };
+
+    return res.status(201).json({
+      success: true,
+      message: 'Signup complete',
+      user: userResponse,
+      token,
+    });
+  } catch (error) {
+    console.error('completeDraft error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to complete signup',
+    });
   }
 };

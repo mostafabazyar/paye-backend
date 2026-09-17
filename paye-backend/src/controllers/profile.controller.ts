@@ -193,6 +193,20 @@ const upsertDraft = async (params: {
  * ------------------------------------------------------------------ */
 export const setupProfile = async (req: Request, res: Response) => {
   try {
+    const authUser = (req as any).user;
+
+    if (!authUser?.id) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    // Only DRAFT tokens reach this endpoint
+    if (authUser.type !== 'DRAFT') {
+      return res.status(403).json({
+        success: false,
+        message: 'Profile setup is only available for draft users',
+      });
+    }
+
     const {
       name,
       birthDate,
@@ -208,12 +222,6 @@ export const setupProfile = async (req: Request, res: Response) => {
       longitude,
     } = req.body;
 
-    const userId = (req as any).user?.id || (req as any).userId;
-
-    if (!userId) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
-    }
-
     const parsedBirthDate = parseBirthDate(birthDate);
     if (!parsedBirthDate) {
       return res.status(400).json({
@@ -222,40 +230,32 @@ export const setupProfile = async (req: Request, res: Response) => {
       });
     }
 
-    if (parsedBirthDate.getTime() > Date.now()) {
+    const age = calculateAge(parsedBirthDate);
+    if (age === null || age < 16 || age > 70) {
       return res.status(400).json({
         success: false,
-        message: 'Birth date cannot be in the future',
+        message: 'Age must be between 16 and 70',
       });
     }
 
-    const age = calculateAge(parsedBirthDate);
-    if (age === null) {
-      return res.status(400).json({ success: false, message: 'Unable to calculate age' });
-    }
-    if (age < 16) {
-      return res.status(400).json({ success: false, message: 'You must be at least 16 years old' });
-    }
-    if (age > 70) {
-      return res.status(400).json({ success: false, message: 'Age cannot be greater than 70' });
-    }
-
-    // Normalize sports array
-    const slugs: string[] = Array.isArray(sportSlugs)
-      ? sportSlugs.map((s) => String(s).trim()).filter(Boolean)
+    const sessionTypes = Array.isArray(preferredSessionTypes)
+      ? preferredSessionTypes.map(String)
       : [];
 
-    // Validate every slug exists & is active
+    const sportSlugsArray = Array.isArray(sportSlugs)
+      ? sportSlugs.map(String)
+      : [];
+
+    // Validate sport slugs against Sport table
     let resolvedSports: { id: string; slug: string }[] = [];
-    if (slugs.length > 0) {
+    if (sportSlugsArray.length > 0) {
       resolvedSports = await prisma.sport.findMany({
-        where: { slug: { in: slugs }, isActive: true },
+        where: { slug: { in: sportSlugsArray }, isActive: true },
         select: { id: true, slug: true },
       });
-
-      if (resolvedSports.length !== slugs.length) {
+      if (resolvedSports.length !== sportSlugsArray.length) {
         const found = new Set(resolvedSports.map((s) => s.slug));
-        const missing = slugs.filter((s) => !found.has(s));
+        const missing = sportSlugsArray.filter((s) => !found.has(s));
         return res.status(400).json({
           success: false,
           message: `Unknown or inactive sport(s): ${missing.join(', ')}`,
@@ -263,108 +263,40 @@ export const setupProfile = async (req: Request, res: Response) => {
       }
     }
 
-    // Normalize session types
-    const sessionTypes: string[] = Array.isArray(preferredSessionTypes)
-      ? preferredSessionTypes.map((s) => String(s))
-      : [];
-
-    // Validate location ids if provided (FK integrity)
-    let resolvedCountryId: number | null = null;
-    let resolvedCityId: number | null = null;
-    let resolvedNeighborhoodId: number | null = null;
-
-    if (countryId != null) {
-      const c = await prisma.country.findUnique({ where: { id: Number(countryId) } });
-      if (!c) return res.status(400).json({ success: false, message: 'Invalid countryId' });
-      resolvedCountryId = c.id;
-    }
-    if (cityId != null) {
-      const c = await prisma.city.findUnique({ where: { id: Number(cityId) } });
-      if (!c) return res.status(400).json({ success: false, message: 'Invalid cityId' });
-      resolvedCityId = c.id;
-    }
-    if (neighborhoodId != null) {
-      const n = await prisma.neighborhood.findUnique({ where: { id: Number(neighborhoodId) } });
-      if (!n) return res.status(400).json({ success: false, message: 'Invalid neighborhoodId' });
-      resolvedNeighborhoodId = n.id;
-    }
-
-    const lat = latitude != null ? Number(latitude) : null;
-    const lng = longitude != null ? Number(longitude) : null;
-
-    // Transaction: update User + replace UserSport rows
-    const updatedUser = await prisma.$transaction(async (tx) => {
-      const updated = await tx.user.update({
-        where: { id: userId },
-        data: {
-          name,
-          birthDate: parsedBirthDate,
-          gender,
-          interestedIn,
-          preferredSessionTypes: sessionTypes.length > 0 ? sessionTypes.join(',') : null,
-          bio,
-          isVerified: true,
-          countryId: resolvedCountryId,
-          cityId: resolvedCityId,
-          neighborhoodId: resolvedNeighborhoodId,
-          latitude: lat,
-          longitude: lng,
-        },
-      });
-
-      // Replace sports
-      await tx.userSport.deleteMany({ where: { userId } });
-      if (resolvedSports.length > 0) {
-        await tx.userSport.createMany({
-          data: resolvedSports.map((s) => ({ userId, sportId: s.id })),
-          skipDuplicates: true,
-        });
-      }
-
-      return updated;
-    });
-
-    // Mirror to draft (CRM)
-    await upsertDraft({
-      userId,
-      phone: updatedUser.phone,
+    const draft = await prisma.draftUser.update({
+      where: { id: authUser.id },
       data: {
         name,
         birthDate: parsedBirthDate,
         gender,
         interestedIn,
-        countryId: resolvedCountryId,
-        cityId: resolvedCityId,
-        neighborhoodId: resolvedNeighborhoodId,
-        latitude: lat,
-        longitude: lng,
-        sportsSlugs: resolvedSports.map((s) => s.slug),
-        sessionTypes,
+        sessionTypes: sessionTypes.length > 0 ? sessionTypes.join(',') : null,
+        sportsSlugs:
+          sportSlugsArray.length > 0
+            ? JSON.stringify(sportSlugsArray)
+            : null,
         bio,
+        countryId: countryId != null ? Number(countryId) : null,
+        cityId: cityId != null ? Number(cityId) : null,
+        neighborhoodId: neighborhoodId != null ? Number(neighborhoodId) : null,
+        latitude: latitude != null ? Number(latitude) : null,
+        longitude: longitude != null ? Number(longitude) : null,
         lastStep: 7,
-        completedAt: new Date(),
       },
     });
 
-    console.log(`✅ Profile setup completed for user: ${userId}`);
-
-    const token = jwt.sign(
-      { id: updatedUser.id, phone: updatedUser.phone },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    const finalSports = resolvedSports.map((s) => s.slug);
-
-    res.json({
+    // No token change — the DRAFT token is still valid.
+    return res.json({
       success: true,
-      message: 'Profile setup completed successfully',
-      user: formatUserResponse(updatedUser, finalSports),
-      token,
+      message: 'Draft updated',
+      draftId: draft.id,
     });
-  } catch (error: any) {
-    console.error('Setup profile error:', error);
-    res.status(500).json({ success: false, message: 'Failed to update profile' });
+  } catch (error) {
+    console.error('setupProfile error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to save profile',
+    });
   }
 };
 
