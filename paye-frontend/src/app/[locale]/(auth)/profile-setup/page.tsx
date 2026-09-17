@@ -1,1297 +1,283 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { toGregorian, toJalaali } from 'jalaali-js';
+import { useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { toast } from "sonner";
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { useRouter } from "@/i18n/navigation";
+import { useAuthStore } from "@/store/auth.store";
+import { apiClient } from "@/lib/api";
+import { saveDraftStep } from "@/lib/api/draft";
 
+import { WizardLayout } from "@/components/profile-setup/WizardLayout";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  emptyWizardData,
+  type StepNumber,
+  type WizardData,
+} from "@/components/profile-setup/types";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Step1Gender } from "@/components/profile-setup/steps/Step1Gender";
+import { Step2Identity } from "@/components/profile-setup/steps/Step2Identity";
+import { Step3Location } from "@/components/profile-setup/steps/Step3Location";
+import { Step4InterestedIn } from "@/components/profile-setup/steps/Step4InterestedIn";
+import { Step5Sports } from "@/components/profile-setup/steps/Step5Sports";
+import { Step6SessionTypes } from "@/components/profile-setup/steps/Step6SessionTypes";
+import { Step7Bio } from "@/components/profile-setup/steps/Step7Bio";
 
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form/form';
-
-import { toast } from 'sonner';
-import { apiClient } from '@/lib/api';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/auth.store';
-import { useTranslations, useLocale } from 'next-intl';
-
-/* =========================================================
-   Schema
-========================================================= */
-
-const profileSetupSchema = z.object({
-  name: z.string().min(2, 'nameMin'),
-
-  birthYear: z.number().int('birthYearInvalid'),
-  birthMonth: z.number().int('birthMonthInvalid'),
-  birthDay: z.number().int('birthDayInvalid'),
-
-  gender: z.enum(['male', 'female', 'other']),
-
-  interestedIn: z.enum([
-    'MEN',
-    'WOMEN',
-    'EVERYONE',
-  ]),
-
-  preferredSports: z.array(z.string()),
-
-  preferredSessionTypes: z.array(
-    z.enum([
-      'ONE_ON_ONE',
-      'ONE_ON_MANY',
-      'MANY_ON_MANY',
-    ])
-  ),
-
-  bio: z.string().max(500).optional(),
-});
-
-type ProfileSetupForm = z.infer<
-  typeof profileSetupSchema
->;
-
-/* =========================================================
-   Sports
-========================================================= */
-
-const sportOptions = [
-  'Football',
-  'Basketball',
-  'Tennis',
-  'Swimming',
-  'Running',
-  'Cycling',
-  'Gym',
-  'Yoga',
-  'Boxing',
-  'Hiking',
-  'Badminton',
-  'Volleyball',
-] as const;
-
-const sportKeyMap: Record<
-  (typeof sportOptions)[number],
-  string
-> = {
-  Football: 'football',
-  Basketball: 'basketball',
-  Tennis: 'tennis',
-  Swimming: 'swimming',
-  Running: 'running',
-  Cycling: 'cycling',
-  Gym: 'gym',
-  Yoga: 'yoga',
-  Boxing: 'boxing',
-  Hiking: 'hiking',
-  Badminton: 'badminton',
-  Volleyball: 'volleyball',
+const STEP_META: Record<StepNumber, { titleKey: string }> = {
+  1: { titleKey: "step1.title" },
+  2: { titleKey: "step2.title" },
+  3: { titleKey: "step3.title" },
+  4: { titleKey: "step4.title" },
+  5: { titleKey: "step5.title" },
+  6: { titleKey: "step6.title" },
+  7: { titleKey: "step7.title" },
 };
-
-/* =========================================================
-   Session Types
-========================================================= */
-
-const sessionTypeOptions = [
-  {
-    value: 'ONE_ON_ONE' as const,
-    key: 'oneOnOne',
-  },
-  {
-    value: 'ONE_ON_MANY' as const,
-    key: 'oneOnMany',
-  },
-  {
-    value: 'MANY_ON_MANY' as const,
-    key: 'manyOnMany',
-  },
-];
-
-/* =========================================================
-   Helpers
-========================================================= */
-
-/**
- * Return number of days in a month.
- *
- * Gregorian:
- * new Date(year, month, 0).getDate()
- *
- * Jalali:
- * jalaali-js check is used below.
- */
-const getGregorianDaysInMonth = (
-  year: number,
-  month: number
-) => {
-  return new Date(
-    year,
-    month,
-    0
-  ).getDate();
-};
-
-/**
- * Convert selected local calendar date
- * to Gregorian YYYY-MM-DD.
- *
- * fa:
- * Jalali -> Gregorian
- *
- * en:
- * Gregorian -> Gregorian
- */
-const convertToGregorianDate = (
-  year: number,
-  month: number,
-  day: number,
-  isPersian: boolean
-): string | null => {
-  try {
-    let gregorianYear = year;
-    let gregorianMonth = month;
-    let gregorianDay = day;
-
-    if (isPersian) {
-      const result = toGregorian(
-        year,
-        month,
-        day
-      );
-
-      gregorianYear = result.gy;
-      gregorianMonth = result.gm;
-      gregorianDay = result.gd;
-    } else {
-      const date = new Date(
-        Date.UTC(
-          year,
-          month - 1,
-          day
-        )
-      );
-
-      if (
-        date.getUTCFullYear() !== year ||
-        date.getUTCMonth() !== month - 1 ||
-        date.getUTCDate() !== day
-      ) {
-        return null;
-      }
-    }
-
-    return [
-      String(gregorianYear).padStart(4, '0'),
-      String(gregorianMonth).padStart(2, '0'),
-      String(gregorianDay).padStart(2, '0'),
-    ].join('-');
-  } catch {
-    return null;
-  }
-};
-
-/**
- * Get default birth date.
- *
- * Default = 25 years ago today.
- *
- * For fa, convert today's Gregorian date
- * into Jalali.
- */
-const getDefaultBirthDate = (
-  isPersian: boolean
-) => {
-  const today = new Date();
-
-  const year =
-    today.getUTCFullYear() - 25;
-
-  const month =
-    today.getUTCMonth() + 1;
-
-  const day =
-    today.getUTCDate();
-
-  if (isPersian) {
-    const jalali = toJalaali(
-      year,
-      month,
-      day
-    );
-
-    return {
-      year: jalali.jy,
-      month: jalali.jm,
-      day: jalali.jd,
-    };
-  }
-
-  return {
-    year,
-    month,
-    day,
-  };
-};
-
-/* =========================================================
-   Component
-========================================================= */
 
 export default function ProfileSetupPage() {
-  const [loading, setLoading] =
-    useState(false);
-
   const router = useRouter();
-
-  const {
-    user,
-    setAuth,
-  } = useAuthStore();
-
   const locale = useLocale();
+  const isRtl = locale === "fa";
+  const t = useTranslations("ProfileSetupWizard");
 
-  const isRtl =
-    locale === 'fa';
+  const { user, setAuth, hasHydrated } = useAuthStore();
 
-  const isPersian =
-    locale === 'fa';
+  const [step, setStep] = useState<StepNumber>(1);
+  const [subStep, setSubStep] = useState<"name" | "birth">("name");
+  const [data, setData] = useState<WizardData>(emptyWizardData);
+  const [submitting, setSubmitting] = useState(false);
 
-  const t =
-    useTranslations(
-      'ProfileSetupPage'
-    );
+  useEffect(() => {
+    if (hasHydrated && !user) {
+      router.replace("/login");
+    }
+  }, [user, hasHydrated, router]);
 
-  const tSports =
-    useTranslations('Sports');
+  useEffect(() => {
+    if (!user) return;
+    setData((d) => ({
+      ...d,
+      gender: (user.gender as WizardData["gender"]) || d.gender,
+      name: user.name ?? d.name,
+      interestedIn:
+        (user.interestedIn as WizardData["interestedIn"]) || d.interestedIn,
+      preferredSessionTypes:
+        (user.preferredSessionTypes as WizardData["preferredSessionTypes"]) ||
+        d.preferredSessionTypes,
+      bio: user.bio ?? d.bio,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
-  /* =======================================================
-     Default Birth Date
-  ======================================================= */
-
-  const defaultBirthDate =
-    getDefaultBirthDate(isPersian);
-
-  /* =======================================================
-     Form
-  ======================================================= */
-
-  const form =
-    useForm<ProfileSetupForm>({
-      resolver:
-        zodResolver(
-          profileSetupSchema
-        ),
-
-      defaultValues: {
-        name:
-          user?.name || '',
-
-        birthYear:
-          defaultBirthDate.year,
-
-        birthMonth:
-          defaultBirthDate.month,
-
-        birthDay:
-          defaultBirthDate.day,
-
-        gender:
-          (user?.gender as
-            | 'male'
-            | 'female'
-            | 'other') ||
-          'male',
-
-        interestedIn:
-          (user?.interestedIn as
-            | 'MEN'
-            | 'WOMEN'
-            | 'EVERYONE') ||
-          'EVERYONE',
-
-        preferredSports:
-          user?.preferredSports ||
-          [],
-
-        preferredSessionTypes:
-          (user?.preferredSessionTypes as ProfileSetupForm['preferredSessionTypes']) ||
-          [],
-
-        bio:
-          user?.bio || '',
-      },
-    });
-
-  /* =======================================================
-     Years
-  ======================================================= */
-
-  const currentYear =
-    isPersian
-      ? toJalaali(
-          new Date().getUTCFullYear(),
-          new Date().getUTCMonth() + 1,
-          new Date().getUTCDate()
-        ).jy
-      : new Date().getUTCFullYear();
-
-  const minYear =
-    currentYear - 70;
-
-  const maxYear =
-    currentYear - 16;
-
-  const years = Array.from(
-    {
-      length:
-        maxYear - minYear + 1,
-    },
-    (_, index) =>
-      minYear + index
-  ).reverse();
-
-  /* =======================================================
-     Months
-  ======================================================= */
-
-  const months = isPersian
-    ? [
-        { value: 1, label: 'فروردین' },
-        { value: 2, label: 'اردیبهشت' },
-        { value: 3, label: 'خرداد' },
-        { value: 4, label: 'تیر' },
-        { value: 5, label: 'مرداد' },
-        { value: 6, label: 'شهریور' },
-        { value: 7, label: 'مهر' },
-        { value: 8, label: 'آبان' },
-        { value: 9, label: 'آذر' },
-        { value: 10, label: 'دی' },
-        { value: 11, label: 'بهمن' },
-        { value: 12, label: 'اسفند' },
-      ]
-    : [
-        { value: 1, label: 'January' },
-        { value: 2, label: 'February' },
-        { value: 3, label: 'March' },
-        { value: 4, label: 'April' },
-        { value: 5, label: 'May' },
-        { value: 6, label: 'June' },
-        { value: 7, label: 'July' },
-        { value: 8, label: 'August' },
-        { value: 9, label: 'September' },
-        { value: 10, label: 'October' },
-        { value: 11, label: 'November' },
-        { value: 12, label: 'December' },
-      ];
-
-  /* =======================================================
-     Calculate Days
-  ======================================================= */
-
-  const selectedYear =
-    form.watch('birthYear');
-
-  const selectedMonth =
-    form.watch('birthMonth');
-
-  let daysInMonth = 31;
-
-  if (isPersian) {
-    daysInMonth =
-      selectedMonth <= 6
-        ? 31
-        : selectedMonth <= 11
-          ? 30
-          : 30;
-  } else {
-    daysInMonth =
-      getGregorianDaysInMonth(
-        selectedYear,
-        selectedMonth
-      );
+  function update<K extends keyof WizardData>(key: K, value: WizardData[K]) {
+    setData((d) => ({ ...d, [key]: value }));
   }
 
-  const days = Array.from(
-    {
-      length: daysInMonth,
-    },
-    (_, index) =>
-      index + 1
-  );
+  function stepIsValid(n: StepNumber): boolean {
+    switch (n) {
+      case 1:
+        return data.gender !== "";
+      case 2:
+        return data.name.trim().length >= 2 && !!data.birthDate;
+      case 3:
+        return true;
+      case 4:
+        return data.interestedIn !== "";
+      case 5:
+        return data.sportSlugs.length > 0;
+      case 6:
+        return data.preferredSessionTypes.length > 0;
+      case 7:
+        return data.bio.length <= 500;
+      default:
+        return true;
+    }
+  }
 
-  /* =======================================================
-     Submit
-  ======================================================= */
+  function handlePrimaryAction() {
+  // Step 2 has two internal sub-screens driven from the footer
+  if (step === 2) {
+    if (subStep === "name") {
+      // Only allow moving on if name is valid
+      if (data.name.trim().length < 2) return;
+      setSubStep("birth");
+      return;
+    }
+    // subStep === "birth"
+    if (!data.birthDate) return;
+    void goNext();
+    return;
+  }
 
-  const onSubmit = async (
-    data: ProfileSetupForm
-  ) => {
-    setLoading(true);
+  void goNext();
+}
 
+// What is the footer label for the current sub-screen?
+function primaryLabel(): string {
+  if (step === 2) {
+    // Both sub-screens show "Continue"
+    return t("continue");
+  }
+  return step === 7 ? t("finish") : t("next");
+}
+
+// Is the footer button enabled?
+  function primaryEnabled(): boolean {
+    if (step === 2) {
+      if (subStep === "name") return data.name.trim().length >= 2;
+      return !!data.birthDate;
+    }
+    return stepIsValid(step);
+  }
+
+  async function goNext() {
+    if (!stepIsValid(step)) return;
+
+    void saveDraftStep({
+      lastStep: step,
+      gender: data.gender || undefined,
+      name: data.name || undefined,
+      birthDate: data.birthDate || undefined,
+      countryId: data.countryId,
+      cityId: data.cityId,
+      neighborhoodId: data.neighborhoodId,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      interestedIn: data.interestedIn || undefined,
+      sportSlugs: data.sportSlugs.length > 0 ? data.sportSlugs : undefined,
+      sessionTypes:
+        data.preferredSessionTypes.length > 0
+          ? data.preferredSessionTypes
+          : undefined,
+      bio: data.bio || undefined,
+    });
+
+    if (step < 7) {
+      setStep((s) => (s + 1) as StepNumber);
+      return;
+    }
+
+    await submitFinal();
+  }
+
+  /**
+   * Top-left back arrow behavior.
+   * Inside step 2's birth sub-screen, goes back to the name sub-screen.
+   * Otherwise moves to the previous wizard step.
+   */
+  function handleBack() {
+    if (step === 2 && subStep === "birth") {
+      setSubStep("name");
+      return;
+    }
+    if (step > 1) {
+      setStep((s) => (s - 1) as StepNumber);
+      // When entering step 2 from step 1, always start on name
+      if (step - 1 === 2) setSubStep("name");
+    }
+  }
+
+  async function submitFinal() {
+    setSubmitting(true);
     try {
-      /* -----------------------------------------------------
-         Convert local calendar to Gregorian
-      ----------------------------------------------------- */
-
-      const birthDate =
-        convertToGregorianDate(
-          data.birthYear,
-          data.birthMonth,
-          data.birthDay,
-          isPersian
-        );
-
-      if (!birthDate) {
-        toast.error(
-          t('errorTitle'),
-          {
-            description:
-              t('invalidBirthDate'),
-          }
-        );
-
-        return;
-      }
-
-      /* -----------------------------------------------------
-         Backend payload
-      ----------------------------------------------------- */
-
       const payload = {
-        name: data.name,
-
-        birthDate,
-
+        name: data.name.trim(),
+        birthDate: data.birthDate,
         gender: data.gender,
-
-        interestedIn:
-          data.interestedIn,
-
-        preferredSports:
-          data.preferredSports,
-
-        preferredSessionTypes:
-          data.preferredSessionTypes,
-
-        bio: data.bio,
+        interestedIn: data.interestedIn,
+        preferredSessionTypes: data.preferredSessionTypes,
+        sportSlugs: data.sportSlugs,
+        bio: data.bio || null,
+        countryId: data.countryId,
+        cityId: data.cityId,
+        neighborhoodId: data.neighborhoodId,
+        latitude: data.latitude,
+        longitude: data.longitude,
       };
 
-      console.log(
-        '📤 Profile setup payload:',
-        payload
-      );
+      const res = await apiClient.post("/profile/setup", payload);
 
-      const res =
-        await apiClient.post(
-          '/profile/setup',
-          payload
-        );
+      setAuth(res.user, res.token || "");
 
-      setAuth(
-        res.user,
-        res.token || ''
-      );
+      toast.success(t("successTitle"), {
+        description: t("successDesc"),
+      });
 
-      toast.success(
-        t('success')
-      );
-
-      router.push('/explore');
-    } catch (
-      error: unknown
-    ) {
-      console.error(
-        'Profile setup error:',
-        error
-      );
-
-      toast.error(
-        t('errorTitle'),
-        {
-          description:
-            (
-              error as {
-                message?: string;
-              }
-            ).message ||
-            t('errorFallback'),
-        }
-      );
+      router.replace("/explore");
+    } catch (err: unknown) {
+      toast.error(t("errorTitle"), {
+        description:
+          (err as { message?: string })?.message || t("errorFallback"),
+      });
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
-  };
+  }
 
-  /* =======================================================
-     Error Translation
-  ======================================================= */
+  if (!hasHydrated || !user) return null;
 
-  const translateError = (
-    message?: string
-  ) => {
-    if (!message) {
-      return undefined;
-    }
-
-    if (
-      message === 'nameMin'
-    ) {
-      return t(
-        'errors.nameMin'
-      );
-    }
-
-    if (
-      message ===
-      'birthYearInvalid'
-    ) {
-      return t(
-        'errors.birthYearInvalid'
-      );
-    }
-
-    if (
-      message ===
-      'birthMonthInvalid'
-    ) {
-      return t(
-        'errors.birthMonthInvalid'
-      );
-    }
-
-    if (
-      message ===
-      'birthDayInvalid'
-    ) {
-      return t(
-        'errors.birthDayInvalid'
-      );
-    }
-
-    return message;
-  };
-
-  /* =======================================================
-     Render
-  ======================================================= */
+  const meta = STEP_META[step];
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-gray-50 p-4"
-      dir={
-        isRtl
-          ? 'rtl'
-          : 'ltr'
-      }
+    <WizardLayout
+      step={step}
+      title={t(meta.titleKey)}
+      isRtl={isRtl}
+      canGoBack={step > 1 || (step === 2 && subStep === "birth")}
+      isLastStep={step === 7}
+      submitting={submitting}
+      onBack={handleBack}
+      onNext={handlePrimaryAction}
+      footerLabel={primaryLabel()}
+      footerEnabled={primaryEnabled()}
     >
-      <Card className="w-full max-w-lg">
-        <CardHeader>
-          <CardTitle>
-            {t('title')}
-          </CardTitle>
-        </CardHeader>
+      {step === 1 && (
+        <Step1Gender value={data.gender} onChange={(v) => update("gender", v)} />
+      )}
 
-        <CardContent>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(
-                onSubmit
-              )}
-              className="space-y-6"
-            >
-              {/* =================================================
-                  Name
-              ================================================= */}
+      {step === 2 && (
+        <Step2Identity
+          subStep={subStep}
+          onSubStepChange={setSubStep}
+          name={data.name}
+          birthDate={data.birthDate}
+          onNameChange={(v) => update("name", v)}
+          onBirthDateChange={(v) => update("birthDate", v)}
+        />
+      )}
 
-              <FormField
-                control={form.control}
-                name="name"
-                render={({
-                  field,
-                }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {t(
-                        'nameLabel'
-                      )}
-                    </FormLabel>
-
-                    <FormControl>
-                      <Input
-                        placeholder={t(
-                          'namePlaceholder'
-                        )}
-                        {...field}
-                      />
-                    </FormControl>
-
-                    <FormMessage>
-                      {translateError(
-                        form.formState
-                          .errors
-                          .name
-                          ?.message
-                      )}
-                    </FormMessage>
-                  </FormItem>
-                )}
-              />
-
-              {/* =================================================
-                  Birth Date
-              ================================================= */}
-
-              <FormItem>
-                <FormLabel>
-                  {t(
-                    'birthDateLabel'
-                  )}
-                </FormLabel>
-
-                <div className="grid grid-cols-3 gap-3">
-
-                  {/* Year */}
-
-                  <FormField
-                    control={form.control}
-                    name="birthYear"
-                    render={({
-                      field,
-                    }) => (
-                      <FormItem>
-                        <Select
-                          value={String(
-                            field.value
-                          )}
-                          onValueChange={(
-                            value
-                          ) => {
-                            field.onChange(
-                              Number(value)
-                            );
-
-                            /*
-                             * Fix day when changing
-                             * month/year.
-                             */
-                            const currentDay =
-                              form.getValues(
-                                'birthDay'
-                              );
-
-                            const newYear =
-                              Number(value);
-
-                            let maxDays =
-                              daysInMonth;
-
-                            if (
-                              isPersian
-                            ) {
-                              maxDays =
-                                form.getValues(
-                                  'birthMonth'
-                                ) <= 6
-                                  ? 31
-                                  : form.getValues(
-                                      'birthMonth'
-                                    ) <= 11
-                                    ? 30
-                                    : 30;
-                            } else {
-                              maxDays =
-                                getGregorianDaysInMonth(
-                                  newYear,
-                                  form.getValues(
-                                    'birthMonth'
-                                  )
-                                );
-                            }
-
-                            if (
-                              currentDay >
-                              maxDays
-                            ) {
-                              form.setValue(
-                                'birthDay',
-                                maxDays
-                              );
-                            }
-                          }}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={t(
-                                  'birthYearPlaceholder'
-                                )}
-                              />
-                            </SelectTrigger>
-                          </FormControl>
-
-                          <SelectContent>
-                            {years.map(
-                              (
-                                year
-                              ) => (
-                                <SelectItem
-                                  key={
-                                    year
-                                  }
-                                  value={String(
-                                    year
-                                  )}
-                                >
-                                  {year}
-                                </SelectItem>
-                              )
-                            )}
-                          </SelectContent>
-                        </Select>
-
-                        <FormMessage>
-                          {translateError(
-                            form.formState
-                              .errors
-                              .birthYear
-                              ?.message
-                          )}
-                        </FormMessage>
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Month */}
-
-                  <FormField
-                    control={form.control}
-                    name="birthMonth"
-                    render={({
-                      field,
-                    }) => (
-                      <FormItem>
-                        <Select
-                          value={String(
-                            field.value
-                          )}
-                          onValueChange={(
-                            value
-                          ) => {
-                            const month =
-                              Number(
-                                value
-                              );
-
-                            field.onChange(
-                              month
-                            );
-
-                            const currentDay =
-                              form.getValues(
-                                'birthDay'
-                              );
-
-                            let maxDays =
-                              31;
-
-                            if (
-                              isPersian
-                            ) {
-                              maxDays =
-                                month <= 6
-                                  ? 31
-                                  : month <=
-                                      11
-                                    ? 30
-                                    : 30;
-                            } else {
-                              maxDays =
-                                getGregorianDaysInMonth(
-                                  form.getValues(
-                                    'birthYear'
-                                  ),
-                                  month
-                                );
-                            }
-
-                            if (
-                              currentDay >
-                              maxDays
-                            ) {
-                              form.setValue(
-                                'birthDay',
-                                maxDays
-                              );
-                            }
-                          }}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={t(
-                                  'birthMonthPlaceholder'
-                                )}
-                              />
-                            </SelectTrigger>
-                          </FormControl>
-
-                          <SelectContent>
-                            {months.map(
-                              (
-                                month
-                              ) => (
-                                <SelectItem
-                                  key={
-                                    month.value
-                                  }
-                                  value={String(
-                                    month.value
-                                  )}
-                                >
-                                  {
-                                    month.label
-                                  }
-                                </SelectItem>
-                              )
-                            )}
-                          </SelectContent>
-                        </Select>
-
-                        <FormMessage>
-                          {translateError(
-                            form.formState
-                              .errors
-                              .birthMonth
-                              ?.message
-                          )}
-                        </FormMessage>
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Day */}
-
-                  <FormField
-                    control={form.control}
-                    name="birthDay"
-                    render={({
-                      field,
-                    }) => (
-                      <FormItem>
-                        <Select
-                          value={String(
-                            field.value
-                          )}
-                          onValueChange={(
-                            value
-                          ) =>
-                            field.onChange(
-                              Number(value)
-                            )
-                          }
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={t(
-                                  'birthDayPlaceholder'
-                                )}
-                              />
-                            </SelectTrigger>
-                          </FormControl>
-
-                          <SelectContent>
-                            {days.map(
-                              (
-                                day
-                              ) => (
-                                <SelectItem
-                                  key={
-                                    day
-                                  }
-                                  value={String(
-                                    day
-                                  )}
-                                >
-                                  {day}
-                                </SelectItem>
-                              )
-                            )}
-                          </SelectContent>
-                        </Select>
-
-                        <FormMessage>
-                          {translateError(
-                            form.formState
-                              .errors
-                              .birthDay
-                              ?.message
-                          )}
-                        </FormMessage>
-                      </FormItem>
-                    )}
-                  />
-
-                </div>
-              </FormItem>
-
-              {/* =================================================
-                  Gender + Interested In
-              ================================================= */}
-
-              <div className="grid grid-cols-2 gap-4">
-
-                <FormField
-                  control={form.control}
-                  name="gender"
-                  render={({
-                    field,
-                  }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {t(
-                          'genderLabel'
-                        )}
-                      </FormLabel>
-
-                      <Select
-                        onValueChange={
-                          field.onChange
-                        }
-                        value={
-                          field.value
-                        }
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={t(
-                                'genderPlaceholder'
-                              )}
-                            />
-                          </SelectTrigger>
-                        </FormControl>
-
-                        <SelectContent>
-                          <SelectItem value="male">
-                            {t(
-                              'gender.male'
-                            )}
-                          </SelectItem>
-
-                          <SelectItem value="female">
-                            {t(
-                              'gender.female'
-                            )}
-                          </SelectItem>
-
-                          <SelectItem value="other">
-                            {t(
-                              'gender.other'
-                            )}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="interestedIn"
-                  render={({
-                    field,
-                  }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {t(
-                          'interestedInLabel'
-                        )}
-                      </FormLabel>
-
-                      <Select
-                        onValueChange={
-                          field.onChange
-                        }
-                        value={
-                          field.value
-                        }
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={t(
-                                'interestedInPlaceholder'
-                              )}
-                            />
-                          </SelectTrigger>
-                        </FormControl>
-
-                        <SelectContent>
-                          <SelectItem value="MEN">
-                            {t(
-                              'interestedIn.men'
-                            )}
-                          </SelectItem>
-
-                          <SelectItem value="WOMEN">
-                            {t(
-                              'interestedIn.women'
-                            )}
-                          </SelectItem>
-
-                          <SelectItem value="EVERYONE">
-                            {t(
-                              'interestedIn.everyone'
-                            )}
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-              </div>
-
-              {/* =================================================
-                  Sports
-              ================================================= */}
-
-              <FormField
-                control={form.control}
-                name="preferredSports"
-                render={({
-                  field,
-                }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {t(
-                        'sportsLabel'
-                      )}
-                    </FormLabel>
-
-                    <div className="flex flex-wrap gap-2">
-                      {sportOptions.map(
-                        (
-                          sport
-                        ) => {
-                          const selected =
-                            (
-                              field.value ||
-                              []
-                            ).includes(
-                              sport
-                            );
-
-                          return (
-                            <Button
-                              key={
-                                sport
-                              }
-                              type="button"
-                              variant={
-                                selected
-                                  ? 'default'
-                                  : 'outline'
-                              }
-                              onClick={() => {
-                                const next =
-                                  selected
-                                    ? (
-                                        field.value ||
-                                        []
-                                      ).filter(
-                                        (
-                                          item
-                                        ) =>
-                                          item !==
-                                          sport
-                                      )
-                                    : [
-                                        ...(field.value ||
-                                          []),
-                                        sport,
-                                      ];
-
-                                field.onChange(
-                                  next
-                                );
-                              }}
-                              className="rounded-full"
-                            >
-                              {tSports(
-                                sportKeyMap[
-                                  sport
-                                ]
-                              )}
-                            </Button>
-                          );
-                        }
-                      )}
-                    </div>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* =================================================
-                  Session Types
-              ================================================= */}
-
-              <FormField
-                control={form.control}
-                name="preferredSessionTypes"
-                render={({
-                  field,
-                }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {t(
-                        'sessionTypesLabel'
-                      )}
-                    </FormLabel>
-
-                    <div className="flex flex-wrap gap-2">
-                      {sessionTypeOptions.map(
-                        (
-                          option
-                        ) => {
-                          const selected =
-                            (
-                              field.value ||
-                              []
-                            ).includes(
-                              option.value
-                            );
-
-                          return (
-                            <Button
-                              key={
-                                option.value
-                              }
-                              type="button"
-                              variant={
-                                selected
-                                  ? 'default'
-                                  : 'outline'
-                              }
-                              onClick={() => {
-                                const next =
-                                  selected
-                                    ? (
-                                        field.value ||
-                                        []
-                                      ).filter(
-                                        (
-                                          item
-                                        ) =>
-                                          item !==
-                                          option.value
-                                      )
-                                    : [
-                                        ...(field.value ||
-                                          []),
-                                        option.value,
-                                      ];
-
-                                field.onChange(
-                                  next
-                                );
-                              }}
-                              className="rounded-full"
-                            >
-                              {t(
-                                `sessionTypes.${option.key}`
-                              )}
-                            </Button>
-                          );
-                        }
-                      )}
-                    </div>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* =================================================
-                  Bio
-              ================================================= */}
-
-              <FormField
-                control={form.control}
-                name="bio"
-                render={({
-                  field,
-                }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {t(
-                        'bioLabel'
-                      )}
-                    </FormLabel>
-
-                    <FormControl>
-                      <Textarea
-                        placeholder={t(
-                          'bioPlaceholder'
-                        )}
-                        {...field}
-                      />
-                    </FormControl>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* =================================================
-                  Submit
-              ================================================= */}
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={loading}
-              >
-                {loading
-                  ? t('saving')
-                  : t('submit')}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
+      {step === 3 && (
+        <Step3Location
+          countryId={data.countryId}
+          cityId={data.cityId}
+          neighborhoodId={data.neighborhoodId}
+          latitude={data.latitude}
+          longitude={data.longitude}
+          onChange={(patch) => setData((d) => ({ ...d, ...patch }))}
+        />
+      )}
+      {step === 4 && (
+        <Step4InterestedIn
+          value={data.interestedIn}
+          gender={data.gender}
+          onChange={(v) => update("interestedIn", v)}
+        />
+      )}
+      {step === 5 && (
+        <Step5Sports
+          selected={data.sportSlugs}
+          onChange={(v) => update("sportSlugs", v)}
+        />
+      )}
+      {step === 6 && (
+        <Step6SessionTypes
+          selected={data.preferredSessionTypes}
+          onChange={(v) => update("preferredSessionTypes", v)}
+        />
+      )}
+      {step === 7 && (
+        <Step7Bio value={data.bio} onChange={(v) => update("bio", v)} />
+      )}
+    </WizardLayout>
   );
 }

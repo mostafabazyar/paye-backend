@@ -224,3 +224,96 @@
 .persian-font-label {
   font-family: "IRANSans", Tahoma, "Segoe UI", sans-serif !important;
 }
+
+/* Wizard step transitions */
+@keyframes wizard-step-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.wizard-step {
+  animation: wizard-step-in 220ms ease-out both;
+}
+
+html[dir="rtl"] .wizard-step {
+  animation-name: wizard-step-in-rtl;
+}
+
+@keyframes wizard-step-in-rtl {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Leaflet: prevent Tailwind from resetting tile images */
+.leaflet-container img {
+  max-width: none !important;
+  display: inline !important;
+}
+
+/* ---------- Leaflet: match site UI ---------- */
+.leaflet-container {
+  border-radius: 1rem;
+  font-family: inherit;
+  background: #f8fafc; /* slate-50 so grey areas look intentional */
+}
+
+/* Kill Tailwind's img reset on Leaflet tiles */
+.leaflet-container img {
+  max-width: none !important;
+  display: inline !important;
+}
+
+/* Zoom controls — glassy pill that matches the card */
+.leaflet-control-zoom {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0.75rem !important;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06) !important;
+}
+
+.leaflet-control-zoom a {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #0f172a !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  transition: background 150ms ease;
+}
+
+.leaflet-control-zoom a:last-child {
+  border-bottom: none !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* Attribution — whisper-quiet */
+.leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.75) !important;
+  color: #94a3b8 !important;
+  font-size: 9px !important;
+  padding: 1px 6px !important;
+  border-top-left-radius: 0.5rem;
+  backdrop-filter: blur(4px);
+}
+
+.leaflet-control-attribution a {
+  color: #64748b !important;
+}

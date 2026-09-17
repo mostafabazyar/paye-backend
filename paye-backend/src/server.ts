@@ -9,6 +9,11 @@ import profileRoutes from "./routes/profileRoutes";
 import userRoutes from "./routes/userRoutes";
 import requestRoutes from "./routes/requestRoutes";
 import chatRoutes from "./routes/chat.routes";
+import locationRoutes from "./routes/location.routes";
+import draftRoutes from './routes/draft.routes';
+import sports from './routes/sport.routes';
+
+
 import { setupChatSocket } from "./socket/chat.socket";
 
 //Admin Routes
@@ -20,6 +25,8 @@ import adminRequestRoutes from "./routes/admin/adminRequest.routes";
 import adminImpersonationRoutes from "./routes/admin/adminImpersonation.routes";
 import adminManagementRoutes from "./routes/admin/adminManagement.routes";
 import adminAuditRoutes from "./routes/admin/adminAudit.routes";
+import adminSportRoutes from "./routes/admin/adminSport.routes";
+import adminDraftRoutes from "./routes/admin/adminDraft.routes";
 
 dotenv.config();
 
@@ -88,6 +95,10 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/locations", locationRoutes);
+app.use('/api/draft', draftRoutes);
+app.use('/api/sports', sports);
+
 // Admin Routes
 app.use("/api/admin/auth", adminAuthRoutes);
 app.use("/api/admin/users", adminUserRoutes);
@@ -97,6 +108,9 @@ app.use("/api/admin/impersonation", adminImpersonationRoutes);
 app.use("/api/admin/admins", adminManagementRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin/audit-logs", adminAuditRoutes);
+app.use("/api/admin/sports", adminSportRoutes);
+app.use("/api/admin/drafts", adminDraftRoutes);
+
 
 app.get("/health", (req, res) => {
   res.json({ status: "OK", message: "Paye Backend Running" });

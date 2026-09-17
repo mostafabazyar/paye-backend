@@ -22,13 +22,19 @@ export type AuditAction =
   | "REJECT_REQUEST"
   | "PENDING_REQUEST"
   | "DELETE_REQUEST"
-  | "IMPERSONATE_USER";
+  | "IMPERSONATE_USER"
+  | "CREATE_SPORT"
+  | "UPDATE_SPORT"     
+  | "DELETE_SPORT"
+  | "DELETE_DRAFT";    
 
 export type AuditTargetType =
   | "ADMIN"
   | "USER"
   | "LISTING"
-  | "REQUEST";
+  | "REQUEST"
+  | "SPORT"
+  | "DRAFT";
 
 interface CreateAuditLogParams {
   adminId: string;

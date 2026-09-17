@@ -90,7 +90,15 @@
     "boxing": "بوکس",
     "hiking": "کوهنوردی",
     "badminton": "بدمینتون",
-    "volleyball": "والیبال"
+    "volleyball": "والیبال",
+    "table-tennis": "تنیس روی میز",
+    "crossfit": "کراس‌فیت",
+    "pilates": "پیلاتس",
+    "martial-arts": "هنرهای رزمی",
+    "climbing": "سنگ‌نوردی",
+    "skiing": "اسکی",
+    "skateboarding": "اسکیت‌بورد",
+    "dance": "رقص"
   },
   "LoginPage": {
     "title": "پایه",
@@ -502,5 +510,106 @@
     "explore": "کاوش",
     "messages": "پیام‌ها",
     "profile": "پروفایل"
+  },
+  "ProfileSetupWizard": {
+  "successTitle": "پروفایل تکمیل شد",
+  "successDesc": "آماده‌ای برای کاوش.",
+  "errorTitle": "ذخیره پروفایل ناموفق بود",
+  "errorFallback": "مشکلی پیش آمد. لطفاً دوباره تلاش کن.",
+  "continue": "بعدی",
+  "back": "قبلی",
+  "next": "بعدی",
+  "finish": "پایان",
+  "saving": "در حال ذخیره…",
+  "finishing": "در حال اتمام…",
+  "steps": {
+    "gender": "جنسیت",
+    "identity": "مشخصات",
+    "location": "مکان",
+    "interestedIn": "علاقه‌مندی",
+    "sports": "ورزش‌ها",
+    "sessions": "سبک جلسه",
+    "bio": "درباره من"
+  },
+
+  "step1": {
+    "title": "چطور خودت را معرفی می‌کنی؟",
+    "description": "این به ما کمک می‌کند افراد مناسب را به تو پیشنهاد بدهیم.",
+    "male": "مرد",
+    "female": "زن",
+    "other": "سایر"
+  },
+
+  "step2": {
+    "title": "کمی از خودت بگو",
+    "description": "نام و تاریخ تولدت.",
+    "nameLabel": "نام کامل",
+    "namePlaceholder": "مثلاً علی رضایی",
+    "birthLabel": "تاریخ تولد",
+    "yearPlaceholder": "سال",
+    "monthPlaceholder": "ماه",
+    "dayPlaceholder": "روز",
+    "continueBtn": "ادامه",
+    "backShort": "قبلی" 
+  },
+
+  "step3": {
+    "title": "کجا هستی؟",
+    "description": "کشور و شهرت را انتخاب کن، یا از موقعیت فعلی استفاده کن.",
+    "helper": "می‌توانی دکمه زیر را بزنی تا موقعیت دستگاهت ثبت شود.",
+    "country": "کشور",
+    "countryPlaceholder": "کشور را انتخاب کن",
+    "city": "شهر",
+    "cityPlaceholder": "شهر را انتخاب کن",
+    "neighborhood": "محله",
+    "neighborhoodPlaceholder": "محله را انتخاب کن",
+    "noNeighborhoods": "برای این شهر هنوز محله‌ای ثبت نشده",
+    "useLocation": "استفاده از موقعیت من",
+    "locating": "در حال یافتن موقعیت…",
+    "locationUnavailable": "موقعیت‌یابی در این مرورگر در دسترس نیست",
+    "locationFailed": "نتوانستیم موقعیت شما را دریافت کنیم",
+    "locationAdded": "محله پیدا شد",
+    "locationAddedCityOnly": "شهر پیدا شد، محله را انتخاب کن",
+    "locationAddedCountryOnly": "کشور پیدا شد، شهر را انتخاب کن",
+    "locationAddedCoordsOnly": "مختصات ذخیره شد"
+  },
+
+  "step4": {
+    "title": "به چه کسی علاقه‌مندی؟",
+    "description": "فقط افرادی را نشانت می‌دهیم که با ترجیح تو هم‌خوان باشند.",
+    "men": "مردان",
+    "women": "زنان",
+    "everyone": "همه"
+  },
+
+  "step5": {
+    "title": "چه ورزش‌هایی دوست داری؟",
+    "description": "یکی یا چند مورد را انتخاب کن.",
+    "loading": "در حال بارگذاری ورزش‌ها…",
+    "loadFailed": "بارگذاری ورزش‌ها ناموفق بود",
+    "empty": "در حال حاضر ورزشی در دسترس نیست."
+  },
+
+  "step6": {
+    "title": "چطور دوست داری بازی کنی؟",
+    "description": "یکی یا چند سبک جلسه را انتخاب کن.",
+    "oneOnOne": "یک به یک",
+    "oneOnOneDesc": "جلسه‌ای متمرکز با یک شریک.",
+    "oneOnMany": "یک به چند",
+    "oneOnManyDesc": "هدایت یک تمرین گروهی کوچک.",
+    "manyOnMany": "چند به چند",
+    "manyOnManyDesc": "جلسه را برای گروه بزرگ‌تر باز کن.",
+    "allHint": "همه سبک‌ها را می‌خواهی؟ انتخاب همه.",
+    "selectAll": "انتخاب همه",
+    "clearAll": "پاک کردن"
+  },
+
+  "step7": {
+    "title": "یک بیو کوتاه",
+    "description": "به دیگران بگو دنبال چه شریکی هستی.",
+    "bioLabel": "بیو",
+    "bioPlaceholder": "کمی از خودت بنویس، سرعتت و اینکه دنبال چه چیزی هستی.",
+    "bioHint": "اختیاری. حداکثر ۵۰۰ کاراکتر."
   }
+}
 }

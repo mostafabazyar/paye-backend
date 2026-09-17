@@ -14,24 +14,41 @@ model User {
   birthDate     DateTime?
   gender        String?
   interestedIn  InterestedIn @default(EVERYONE)
-  preferredSports String?
+
+  // session types stay as a comma-joined string for now
   preferredSessionTypes String?
+
   bio           String?
-  photos        String?  // JSON stringified array
+  photos        String?
   avgRating     Float    @default(0)
   isVerified    Boolean  @default(false)
   isBlocked     Boolean  @default(false)
+
+  // location (added)
+  countryId      Int?
+  cityId         Int?
+  neighborhoodId Int?
+  latitude       Float?
+  longitude      Float?
+
+  country        Country?      @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  city           City?         @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  neighborhood   Neighborhood? @relation(fields: [neighborhoodId], references: [id], onDelete: SetNull)
+
+  sports         UserSport[]
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  messages  Message[]
-
-  // Relations
-  profiles      Profile[]
-  sentRequests  Request[] @relation("SentRequests")
+  messages         Message[]
+  profiles         Profile[]
+  sentRequests     Request[] @relation("SentRequests")
   receivedRequests Request[] @relation("ReceivedRequests")
+  admin            Admin?
 
-  admin Admin?
+  @@index([countryId])
+  @@index([cityId])
+  @@index([neighborhoodId])
 }
 
 model Admin {
@@ -45,6 +62,9 @@ model Admin {
   auditLogs AuditLog[]
   
   @@index([userId])
+
+  isSuperAdmin Boolean @default(false)
+
 }
 
 model Profile {
@@ -129,6 +149,105 @@ model AuditLog {
   @@index([targetType])
   @@index([targetId])
   @@index([createdAt])
+}
+
+model Sport {
+  id         String   @id @default(uuid())
+  name       String   @unique
+  slug       String   @unique
+  icon       String?
+  sortOrder  Int      @default(0)
+  category   String?
+  isActive   Boolean  @default(true)
+  createdBy  String?
+  createdAt  DateTime @default(now())
+
+  users      UserSport[]
+
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+model UserSport {
+  userId  String
+  sportId String
+
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sport   Sport @relation(fields: [sportId], references: [id], onDelete: Restrict)
+
+  @@id([userId, sportId])
+  @@index([sportId])
+}
+
+model Country {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique        // "IR", "US"
+  name      String   @unique        // "Iran"
+  nameFa    String?                 // "ایران"
+  createdAt DateTime @default(now())
+
+  cities    City[]
+  users     User[]
+}
+
+model City {
+  id            Int            @id @default(autoincrement())
+  countryId     Int
+  name          String         // "Tehran"
+  nameFa        String?        // "تهران"
+  createdAt     DateTime       @default(now())
+
+  country       Country        @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  neighborhoods Neighborhood[]
+  users         User[]
+
+  @@unique([countryId, name])
+  @@index([countryId])
+}
+
+model Neighborhood {
+  id        Int      @id @default(autoincrement())
+  cityId    Int
+  name      String
+  nameFa    String?
+  createdAt DateTime @default(now())
+
+  city      City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  users     User[]
+
+  @@unique([cityId, name])
+  @@index([cityId])
+}
+
+model DraftUser {
+  id             String   @id @default(uuid())
+  userId         String?  @unique
+  phone          String
+  name           String?
+  birthDate      DateTime?
+  gender         String?
+  interestedIn   InterestedIn?
+
+  countryId      Int?
+  cityId         Int?
+  neighborhoodId Int?
+  latitude       Float?
+  longitude      Float?
+
+  sportsSlugs    String?  // JSON array of slugs captured during the wizard
+  sessionTypes   String?
+  bio            String?
+
+  lastStep       Int      @default(1)
+  completedAt    DateTime?
+  abandonedAt    DateTime?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([phone])
+  @@index([completedAt])
+  @@index([abandonedAt])
 }
 
 enum ExerciseType {

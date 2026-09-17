@@ -10,6 +10,8 @@ import {
   ShieldCheck,
   ScrollText,
   LogOut,
+  Trophy, 
+  NotebookPen
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -21,6 +23,8 @@ const NAV_ITEMS = [
   { href: "/users", label: "Users", icon: Users },
   { href: "/listings", label: "Listings", icon: Home },
   { href: "/requests", label: "Requests", icon: Inbox },
+  { href: "/sports",      label: "Sports",     icon: Trophy },      
+  { href: "/drafts",      label: "Drafts",     icon: NotebookPen }, 
   { href: "/admins", label: "Admins", icon: ShieldCheck },
   { href: "/audit-logs", label: "Audit Logs", icon: ScrollText },
 ];

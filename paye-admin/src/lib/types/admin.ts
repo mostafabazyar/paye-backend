@@ -408,3 +408,85 @@ export type AuditLogListParams = {
   from?: string; // ISO
   to?: string;   // ISO
 };
+
+/* ---------- Sports ---------- */
+
+export type AdminSport = {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+  sortOrder: number;
+  category: string | null;
+  isActive: boolean;
+  createdBy: string | null;
+  createdAt: string;
+};
+
+export type SportsListResponse = {
+  success: boolean;
+  count: number;
+  sports: AdminSport[];
+};
+
+export type PublicSport = {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+  category: string | null;
+};
+
+/* ---------- Drafts ---------- */
+
+export type AdminDraft = {
+  id: string;
+  userId: string | null;
+  phone: string;
+  name: string | null;
+  birthDate: string | null;
+  gender: string | null;
+  interestedIn: string | null;
+  countryId: number | null;
+  cityId: number | null;
+  neighborhoodId: number | null;
+  latitude: number | null;
+  longitude: number | null;
+  sportsSlugs: string | null;   // JSON string of string[]
+  sessionTypes: string | null;  // comma-joined
+  bio: string | null;
+  lastStep: number;
+  completedAt: string | null;
+  abandonedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DraftsPagination = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type DraftsListResponse = {
+  success: boolean;
+  drafts: AdminDraft[];
+  pagination: DraftsPagination;
+};
+
+export type DraftDetailResponse = {
+  success: boolean;
+  draft: AdminDraft;
+};
+
+export type DraftListParams = {
+  status?: "all" | "inProgress" | "completed" | "abandoned";
+  search?: string;
+  minStep?: number;
+  maxStep?: number;
+  from?: string;
+  to?: string;
+  page?: number;
+  limit?: number;
+};

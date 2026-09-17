@@ -35,7 +35,8 @@
       "title": "Find Your <highlight>Sport</highlight>",
       "subtitle": "Select the sports you're interested in to find the perfect workout partner",
       "selected": "Selected: {count} sports",
-      "clear": "Clear All"
+      "clear": "Clear All",
+      "table-tennis": "Table Tennis"
     },
     "features": {
       "title": "Why Choose <highlight>Paye</highlight>",
@@ -90,7 +91,14 @@
     "boxing": "Boxing",
     "hiking": "Hiking",
     "badminton": "Badminton",
-    "volleyball": "Volleyball"
+    "volleyball": "Volleyball",
+    "crossfit": "CrossFit",
+    "pilates": "Pilates",
+    "martial-arts": "Martial Arts",
+    "climbing": "Climbing",
+    "skiing": "Skiing",
+    "skateboarding": "Skateboarding",
+    "dance": "Dance"
   },
     "LoginPage": {
     "title": "Paye",
@@ -503,5 +511,106 @@
     "explore": "Explore",
     "messages": "Messages",
     "profile": "Profile"
+  },
+  "ProfileSetupWizard": {
+  "successTitle": "Profile complete",
+  "successDesc": "You're ready to explore.",
+  "errorTitle": "Could not save profile",
+  "errorFallback": "Something went wrong. Please try again.",
+  "continue": "Next",
+  "back": "Back",
+  "next": "Next",
+  "finish": "Finish",
+  "saving": "Saving…",
+  "finishing": "Finishing…",
+  "steps": {
+    "gender": "Gender",
+    "identity": "Identity",
+    "location": "Location",
+    "interestedIn": "Interested in",
+    "sports": "Sports",
+    "sessions": "Sessions",
+    "bio": "Bio"
+  },
+
+  "step1": {
+    "title": "How do you identify?",
+    "description": "This helps us match you with the right people.",
+    "male": "Man",
+    "female": "Woman",
+    "other": "Other"
+  },
+
+  "step2": {
+    "title": "Tell us about yourself",
+    "description": "Your name and date of birth.",
+    "nameLabel": "Full name",
+    "namePlaceholder": "Jane Doe",
+    "birthLabel": "Date of birth",
+    "yearPlaceholder": "Year",
+    "monthPlaceholder": "Month",
+    "dayPlaceholder": "Day",
+    "continueBtn": "Continue",
+  "backShort": "Back"
+  },
+
+  "step3": {
+    "title": "Where are you based?",
+    "description": "Pick a country and city, or use your current location.",
+    "helper": "You can also tap the button below to use your device location.",
+    "country": "Country",
+    "countryPlaceholder": "Choose country",
+    "city": "City",
+    "cityPlaceholder": "Choose city",
+    "neighborhood": "Neighborhood",
+    "neighborhoodPlaceholder": "Choose neighborhood",
+    "noNeighborhoods": "No neighborhoods in this city yet",
+    "useLocation": "Use my location",
+    "locating": "Locating…",
+    "locationUnavailable": "Location is not available in this browser",
+    "locationFailed": "Could not get your location",
+    "locationAdded": "Neighborhood matched",
+    "locationAddedCityOnly": "City matched, pick a neighborhood",
+    "locationAddedCountryOnly": "Country matched, pick a city",
+    "locationAddedCoordsOnly": "Coordinates saved"
+  },
+
+  "step4": {
+    "title": "Who are you interested in?",
+    "description": "We'll only show you potential matches that fit.",
+    "men": "Men",
+    "women": "Women",
+    "everyone": "Everyone"
+  },
+
+  "step5": {
+    "title": "What sports are you into?",
+    "description": "Pick one or more.",
+    "loading": "Loading sports…",
+    "loadFailed": "Could not load sports",
+    "empty": "No sports are available right now."
+  },
+
+  "step6": {
+    "title": "How do you like to play?",
+    "description": "Pick one or more session styles.",
+    "oneOnOne": "1-on-1",
+    "oneOnOneDesc": "A focused session with one partner.",
+    "oneOnMany": "1-on-many",
+    "oneOnManyDesc": "Lead a small group workout.",
+    "manyOnMany": "Many-on-many",
+    "manyOnManyDesc": "Open the session to a larger crew.",
+    "allHint": "Want every style? Pick all.",
+    "selectAll": "Select all",
+    "clearAll": "Clear"
+  },
+
+  "step7": {
+    "title": "A short bio",
+    "description": "Tell other people what kind of partner you're looking for.",
+    "bioLabel": "Bio",
+    "bioPlaceholder": "Share a bit about yourself, your pace, and what you're looking for.",
+    "bioHint": "Optional. Max 500 characters."
   }
+}
 }
